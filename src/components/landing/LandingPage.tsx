@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
-import { HomepageFounderChat } from "@/components/landing/HomepageFounderChat";
 import {
   Sparkles,
   ArrowRight,
@@ -111,8 +110,8 @@ export function LandingPage() {
         </nav>
       </header>
 
-      {/* 2. Hero Section - AI Founder Chat */}
-      <section className="relative z-10 pt-16 pb-20 px-6 max-w-6xl mx-auto text-center">
+      {/* 2. Hero Section */}
+      <section className="relative z-10 pt-24 pb-20 px-6 text-center max-w-6xl mx-auto">
         {/* Futuristic Pill Badge */}
         <div className="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 backdrop-blur-md text-xs font-medium text-neutral-300 mb-8 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
           <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
@@ -120,16 +119,34 @@ export function LandingPage() {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.04] mb-6 text-white max-w-4xl mx-auto">
-          The AI Co-Founder <span className="font-serif-accent italic font-normal text-neutral-300">Every Founder Deserves</span>
+        {/* Hero Title with Instrument Serif Emphasis */}
+        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.04] mb-6 text-white">
+          The AI Co-Founder <br />
+          <span className="font-serif-accent italic font-normal text-neutral-300">
+            Every Founder Deserves
+          </span>
         </h1>
-        <p className="text-sm text-neutral-400 max-w-2xl mx-auto mb-10">
-          Chat with Isaac to validate your idea. We'll generate your Founder Dashboard, Pitch Deck, and Action Roadmap based on our conversation.
+
+        {/* Hero Description */}
+        <p className="text-base sm:text-lg text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+          From Day 0 idea validation to Delaware C-Corp incorporation, technical PRDs, 3-year financial models, and VC pitch grilling — powered by 25+ specialized C-suite AI agents working in parallel.
         </p>
 
-        {/* The AI Founder Interview Chat */}
-        <div className="text-left mt-10">
-          <HomepageFounderChat />
+        {/* Action CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <GlowingButton
+            onClick={() => setActiveTab("auth")}
+            size="lg"
+            icon={<ArrowRight className="w-4 h-4" />}
+          >
+            Get Started Free
+          </GlowingButton>
+          <button
+            onClick={() => setActiveTab("auth")}
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-black/60 hover:bg-neutral-900 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
+          >
+            Sign In
+          </button>
         </div>
       </section>
 

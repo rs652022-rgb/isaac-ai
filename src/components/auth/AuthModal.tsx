@@ -28,7 +28,7 @@ export function AuthModal() {
         createdAt: new Date().toISOString()
       });
       setLoading(false);
-      setActiveTab("dashboard");
+      setActiveTab("onboarding");
     }, 800);
   };
 

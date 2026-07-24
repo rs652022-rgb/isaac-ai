@@ -1,178 +1,204 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "@/lib/store/app-context";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
-import { FounderProfile } from "@/types";
-import { Sparkles, ArrowRight, Bot } from "lucide-react";
-
-interface StepQuestion {
-  id: keyof FounderProfile;
-  question: string;
-  placeholder: string;
-  agentName: string;
-}
-
-const initialOnboardingState: Partial<FounderProfile> = {
-  startupName: "Isaac.AI",
-  industry: "B2B SaaS / Artificial Intelligence",
-  country: "US",
-  problem: "First-time founders waste months on legal compliance, PRDs, pitch decks, and tech architecture without C-suite advice.",
-  solution: "Autonomous multi-agent founder operating system delivering non-sugarcoated guidance and automated execution.",
-  targetAudience: "Solopreneurs, early-stage founders, incubators",
-  budget: "$15,000",
-  fundingStage: "Pre-Seed"
-};
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Send, Cpu, ArrowRight, Brain, ChevronUp, ChevronDown, Rocket } from "lucide-react";
 
 export function ConversationalOnboarding() {
-  const { updateFounderProfile, setActiveTab } = useApp();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Partial<FounderProfile>>(initialOnboardingState);
-  const [currentInput, setCurrentInput] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { messages, sendMessage, isThinking, setActiveTab } = useApp();
+  const [hasStarted, setHasStarted] = useState(false);
+  
+  const [inputText, setInputText] = useState("");
+  const [showReasoning, setShowReasoning] = useState<Record<string, boolean>>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const QUESTIONS: StepQuestion[] = [
-    {
-      id: "startupName",
-      question: "Hello! I am Isaac, your Master AI Orchestrator. What is the name of your startup or project idea?",
-      placeholder: "e.g., Isaac.AI, Acme Cloud, MedSync",
-      agentName: "Master Orchestrator"
-    },
-    {
-      id: "industry",
-      question: "Which primary industry or sector does your startup operate in?",
-      placeholder: "e.g., B2B SaaS, HealthTech, FinTech, E-commerce, EdTech",
-      agentName: "Market Analyst"
-    },
-    {
-      id: "country",
-      question: "Which country do you plan to incorporate or operate in?",
-      placeholder: "e.g., US, UK, India, Singapore, UAE, Germany",
-      agentName: "Legal Counsel & CA"
-    },
-    {
-      id: "problem",
-      question: "What core problem are you solving for your target customers? Be specific.",
-      placeholder: "e.g., Founders struggle to navigate incorporation and pitch decks...",
-      agentName: "Devil's Advocate"
-    },
-    {
-      id: "solution",
-      question: "What is your core product or solution? How does it solve this problem?",
-      placeholder: "e.g., An autonomous AI Operating System with 25 C-suite agents...",
-      agentName: "Chief Product Officer"
-    },
-    {
-      id: "budget",
-      question: "What is your estimated initial budget or available capital?",
-      placeholder: "e.g., $5,000, $25,000, Bootstrapped",
-      agentName: "CFO & Financial Advisor"
-    }
-  ];
-
-  const handleNextStep = () => {
-    if (currentInput.trim()) {
-      const fieldId = QUESTIONS[currentStep].id;
-      const updated = { ...answers, [fieldId]: currentInput.trim() };
-      setAnswers(updated);
-      setCurrentInput("");
-    }
-
-    if (currentStep < QUESTIONS.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      setIsProcessing(true);
-      setTimeout(() => {
-        updateFounderProfile(answers);
-        setIsProcessing(false);
-        setActiveTab("dashboard");
-      }, 1200);
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const currentQ = QUESTIONS[currentStep];
+  useEffect(() => {
+    if (hasStarted) {
+      scrollToBottom();
+    }
+  }, [messages, isThinking, hasStarted]);
 
-  return (
-    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-4 bg-black">
-      <div className="w-full max-w-2xl space-y-6">
-        {/* Onboarding Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-xs font-mono text-neutral-400">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>AI FOUNDER MEMORY SYNC</span>
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim() || isThinking) return;
+    sendMessage(inputText.trim(), "orchestrator");
+    setInputText("");
+  };
+
+  const toggleReasoning = (id: string) => {
+    setShowReasoning((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // The final step triggers Dashboard view. The "action" field from the agent message handles this.
+  const handleGoToDashboard = () => {
+    setActiveTab("dashboard");
+  };
+
+  if (!hasStarted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-black relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] blur-[150px] pointer-events-none rounded-full" />
+        
+        <GlassCard className="w-full max-w-lg p-8 sm:p-12 space-y-8 relative z-10 border-white/10 bg-[#080808] text-center shadow-[0_30px_100px_rgba(0,0,0,0.95)]">
+          <div className="inline-flex w-16 h-16 rounded-3xl bg-white text-black font-extrabold items-center justify-center text-xl mb-2 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            IS
           </div>
-          <span className="text-xs text-neutral-500 font-mono">
-            Step {currentStep + 1} of {QUESTIONS.length}
-          </span>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full h-1 rounded-full bg-neutral-900 overflow-hidden">
-          <div
-            className="h-full bg-white transition-all duration-300"
-            style={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}
-          />
-        </div>
-
-        {/* Conversational AI Card */}
-        <GlassCard className="p-6 sm:p-8 space-y-6 border-white/10 bg-[#080808]">
-          <div className="flex items-start space-x-4">
-            <div className="w-9 h-9 rounded-xl bg-white text-black flex items-center justify-center font-bold text-sm shrink-0">
-              <Bot className="w-4 h-4" />
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-semibold text-white">{currentQ.agentName}</span>
-                <span className="px-2 py-0.5 text-[9px] rounded bg-white/10 text-neutral-300 font-mono">
-                  Online
-                </span>
-              </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-white leading-relaxed">
-                {currentQ.question}
-              </h3>
+          
+          <div className="space-y-4">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Welcome to Isaac.AI
+            </h1>
+            <div className="space-y-2 text-neutral-400 text-sm sm:text-base">
+              <p>"I'm your AI Founder Partner.</p>
+              <p>I'll learn about your startup, validate your idea, and build your personalised Founder Dashboard."</p>
             </div>
           </div>
 
-          {/* User Input Area */}
-          <div className="space-y-4 pt-2">
-            <textarea
-              rows={3}
-              value={currentInput || (answers[currentQ.id] as string) || ""}
-              onChange={(e) => setCurrentInput(e.target.value)}
-              placeholder={currentQ.placeholder}
-              className="w-full p-4 rounded-xl glass-input text-xs text-white placeholder-neutral-500 focus:outline-none resize-none"
-            />
-
-            <div className="flex items-center justify-between">
-              {currentStep > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep((prev) => prev - 1)}
-                  className="text-xs text-neutral-400 hover:text-white"
-                >
-                  ← Back
-                </button>
-              ) : <div />}
-
-              <GlowingButton
-                onClick={handleNextStep}
-                loading={isProcessing}
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
-                {currentStep === QUESTIONS.length - 1 ? "Complete Memory Sync" : "Continue"}
-              </GlowingButton>
-            </div>
+          <div className="pt-4">
+            <GlowingButton
+              onClick={() => setHasStarted(true)}
+              size="lg"
+              className="w-full"
+              icon={<Rocket className="w-5 h-5" />}
+            >
+              Start Building My Startup
+            </GlowingButton>
           </div>
         </GlassCard>
+      </div>
+    );
+  }
 
-        {/* Summary of Saved Memory */}
-        <div className="p-4 rounded-xl border border-white/5 bg-neutral-950 text-xs text-neutral-400 space-y-1">
-          <p className="font-mono text-neutral-500 text-[10px] uppercase">Active Memory Buffer:</p>
-          <p><strong className="text-white">Startup Name:</strong> {answers.startupName}</p>
-          <p><strong className="text-white">Industry:</strong> {answers.industry}</p>
-          <p><strong className="text-white">Region:</strong> {answers.country}</p>
+  return (
+    <div className="min-h-screen bg-black flex flex-col p-4 sm:p-8 items-center justify-center relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/10 blur-[150px] pointer-events-none" />
+      
+      <div className="w-full max-w-4xl flex flex-col glass-panel rounded-3xl overflow-hidden border-white/20 bg-[#050505]/80 backdrop-blur-3xl shadow-[0_30px_100px_rgba(0,0,0,0.95)] h-[700px] animate-in fade-in zoom-in-95 duration-500 z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/50">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-sm shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+              IS
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Isaac.AI Co-Founder</h2>
+              <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Online & Ready
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Chat Message Stream */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.map((msg) => {
+            const isUser = msg.sender === "user";
+            return (
+              <div
+                key={msg.id}
+                className={`flex items-start space-x-3 ${isUser ? "flex-row-reverse space-x-reverse" : ""}`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
+                    isUser ? "bg-white text-black" : "bg-neutral-900 border border-white/20 text-white"
+                  }`}
+                >
+                  {isUser ? "👤" : msg.avatar || "🤖"}
+                </div>
+
+                <div className={`space-y-1.5 max-w-2xl ${isUser ? "text-right" : ""}`}>
+                  <div className="flex items-center space-x-2 text-[10px] text-neutral-500 font-mono">
+                    <span className="font-semibold text-neutral-300">{msg.senderName}</span>
+                    <span>•</span>
+                    <span>{msg.timestamp}</span>
+                  </div>
+
+                  <div
+                    className={`p-5 rounded-2xl text-sm leading-relaxed ${
+                      isUser
+                        ? "bg-white text-black font-medium"
+                        : "glass-card text-neutral-200 border-white/10"
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+
+                    {/* Reasoning Accordion */}
+                    {!isUser && msg.reasoning && msg.reasoning.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-white/10">
+                        <button
+                          onClick={() => toggleReasoning(msg.id)}
+                          className="flex items-center space-x-1.5 text-[10px] font-mono text-neutral-400 hover:text-white transition-colors"
+                        >
+                          <Brain className="w-3.5 h-3.5" />
+                          <span>{showReasoning[msg.id] ? "Hide Thinking" : "View Extraction Process"}</span>
+                          {showReasoning[msg.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        </button>
+
+                        {showReasoning[msg.id] && (
+                          <ul className="mt-3 space-y-2 pl-3 border-l border-white/20 text-[10px] text-neutral-400 font-mono">
+                            {msg.reasoning.map((step, idx) => (
+                              <li key={idx} className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
+                                <span>{step}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Dashboard Transition Prompt */}
+                    {!isUser && msg.action === "login" && (
+                      <div className="mt-6 pt-4 border-t border-white/10 flex flex-col items-start space-y-3">
+                        <p className="text-xs text-neutral-400 font-medium">Memory sync ready. Let's generate your Founder Dashboard.</p>
+                        <GlowingButton onClick={handleGoToDashboard} icon={<ArrowRight className="w-4 h-4" />}>
+                          Generate Dashboard
+                        </GlowingButton>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Thinking State */}
+          {isThinking && (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-white/20 flex items-center justify-center text-white text-sm animate-pulse">
+                🤖
+              </div>
+              <div className="p-4 rounded-2xl glass-card text-xs text-neutral-300 flex items-center space-x-3 font-mono">
+                <Cpu className="w-4 h-4 animate-spin" />
+                <span>Isaac is synthesizing...</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Bar Form */}
+        <form onSubmit={handleSend} className="p-4 sm:p-6 border-t border-white/10 bg-black/60 flex items-center gap-3">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Tell Isaac about your startup..."
+            className="flex-1 px-5 py-4 rounded-full glass-input text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-white/30"
+            autoFocus
+          />
+          <GlowingButton type="submit" loading={isThinking} icon={<Send className="w-4 h-4" />}>
+            Send
+          </GlowingButton>
+        </form>
       </div>
     </div>
   );

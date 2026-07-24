@@ -115,8 +115,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       let reasoning: string[] = [];
       let action: "login" | undefined;
       
-      // Onboarding conversational flow (if not logged in)
-      if (!user) {
+      // Onboarding conversational flow (if on onboarding tab)
+      if (activeTab === "onboarding") {
         const userMsgCount = messages.filter(m => m.sender === "user").length + 1;
         
         if (userMsgCount === 1) {
@@ -133,15 +133,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           reasoning = ["Extracted 'targetAudience' from response.", "Moving to 'businessModel' extraction."];
         } else if (userMsgCount === 4) {
           updateFounderProfile({ businessModel: text, startupName: "My Awesome Startup" });
-          replyContent = "You're making great progress. I have enough context to run a preliminary analysis and generate your personalized Founder Dashboard, roadmaps, and SWOT analysis.\n\nCreate your free account to save your progress and unlock the Dashboard.";
-          reasoning = ["Extracted 'businessModel' from response.", "Sufficient profile data gathered.", "Triggering authentication flow."];
-          action = "login";
+          replyContent = "You're making great progress. I have enough context to run a preliminary analysis and generate your personalized Founder Dashboard, roadmaps, and SWOT analysis.\n\nLet's generate your Dashboard.";
+          reasoning = ["Extracted 'businessModel' from response.", "Sufficient profile data gathered.", "Triggering dashboard generation."];
+          action = "login"; // Reusing "login" action flag for now, handled as GoToDashboard by the component
         } else {
-          replyContent = "Please log in above to unlock the rest of the features.";
+          replyContent = "Ready to proceed to your dashboard.";
           action = "login";
         }
       } else {
-        // Logged-in experience
+        // Dashboard / Logged-in experience
         const activeAgent = AI_AGENTS.find((a) => a.id === targetAgentId) || selectedAgent;
         if (activeAgent.id === "devils_advocate") {
           replyContent = `**Devil's Advocate Direct Reality Check:**\n1. You claim your target audience is ${founderProfile.targetAudience || 'broad'}, but charging ${founderProfile.pricing || 'without proving ROI'} will result in high churn.\n2. Have you accounted for API rate limits and token cost spikes during multi-agent loops?\n3. **Recommendation:** Offer a 14-day free trial locked to 3 document generations to convert users upfront.`;
