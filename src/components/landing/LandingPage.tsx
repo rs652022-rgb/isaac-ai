@@ -5,6 +5,7 @@ import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { RadialProgress } from "@/components/ui/RadialProgress";
+import Iridescence from "@/components/background/Iridescence";
 import {
   Sparkles,
   ArrowRight,
@@ -27,6 +28,17 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
+      {/* Iridescence Background Shader */}
+      <Iridescence
+        color={[1, 1, 1]}
+        mouseReact={false}
+        amplitude={0.08}
+        speed={0.75}
+      />
+
+      {/* Subtle Black Overlay for Readability */}
+      <div className="absolute inset-0 bg-black/45 pointer-events-none -z-10" />
+
       {/* Background Radial Light */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-white/[0.06] via-transparent to-transparent blur-[120px] pointer-events-none rounded-full" />
 
