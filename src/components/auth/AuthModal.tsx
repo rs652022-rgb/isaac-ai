@@ -5,7 +5,7 @@ import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { Role } from "@/types";
-import { Shield, Sparkles, Mail, Key, ArrowRight, Code } from "lucide-react";
+import { Mail, Key, ArrowRight, Code } from "lucide-react";
 
 export function AuthModal() {
   const { setUser, setActiveTab } = useApp();

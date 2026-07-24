@@ -2,20 +2,17 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "@/lib/store/app-context";
-import { GlassCard } from "@/components/ui/GlassCard";
+
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { AI_AGENTS } from "@/lib/agents/agent-registry";
-import { AIAgent } from "@/types";
+
 import {
   Cpu,
   Send,
   Sparkles,
   ChevronDown,
   ChevronUp,
-  Brain,
-  Flame,
-  CheckCircle2,
-  Code
+  Brain
 } from "lucide-react";
 
 export function AgentChatWorkspace() {

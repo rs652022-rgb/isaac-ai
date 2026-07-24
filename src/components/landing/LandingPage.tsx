@@ -18,7 +18,6 @@ import {
   Award,
   Scale,
   DollarSign,
-  Rocket,
   Flame,
   ZapOff
 } from "lucide-react";
@@ -116,7 +115,7 @@ export function LandingPage() {
         {/* Futuristic Pill Badge */}
         <div className="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 backdrop-blur-md text-xs font-medium text-neutral-300 mb-8 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
           <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
-          <span>The World's First Autonomous AI Founder OS</span>
+          <span>The World&apos;s First Autonomous AI Founder OS</span>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
         </div>
 
@@ -208,7 +207,7 @@ export function LandingPage() {
             </div>
             <h3 className="text-lg font-bold text-white">Startup Validation Engine</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Generates non-sugarcoated Idea Scores, SWOT analysis, PESTLE matrices, Porter's 5 forces, and moat metrics before spending $1 on development.
+              Generates non-sugarcoated Idea Scores, SWOT analysis, PESTLE matrices, Porter&apos;s 5 forces, and moat metrics before spending $1 on development.
             </p>
           </GlassCard>
 

@@ -70,7 +70,7 @@ export interface AgentMessage {
   artifacts?: {
     type: "score" | "document" | "roadmap" | "code" | "chart" | "checklist";
     title: string;
-    data: any;
+    data: Record<string, unknown>;
   }[];
 }
 

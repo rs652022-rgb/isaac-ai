@@ -6,7 +6,6 @@ interface RadialProgressProps {
   strokeWidth?: number;
   label?: string;
   sublabel?: string;
-  color?: "indigo" | "cyan" | "emerald" | "amber" | "rose" | "purple";
 }
 
 export function RadialProgress({
@@ -14,8 +13,7 @@ export function RadialProgress({
   size = 140,
   strokeWidth = 8,
   label,
-  sublabel,
-  color = "indigo"
+  sublabel
 }: RadialProgressProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

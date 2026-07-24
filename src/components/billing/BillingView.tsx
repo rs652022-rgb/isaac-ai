@@ -8,7 +8,7 @@ import { CreditCard, CheckCircle2 } from "lucide-react";
 
 export function BillingView() {
   const { user, setUser } = useApp();
-  const [selectedPlan, setSelectedPlan] = useState(user?.subscriptionPlan || "Pro");
+  const [, setSelectedPlan] = useState(user?.subscriptionPlan || "Pro");
 
   const handleUpgrade = (plan: "Free" | "Pro" | "Business" | "Enterprise") => {
     if (user) {

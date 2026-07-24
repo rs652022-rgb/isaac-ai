@@ -8,15 +8,14 @@ import { RadialProgress } from "@/components/ui/RadialProgress";
 import { AI_AGENTS } from "@/lib/agents/agent-registry";
 import {
   Sparkles,
-  Zap,
+  Rocket,
+  Cpu,
+  ArrowUpRight,
   ShieldCheck,
   TrendingUp,
   Flame,
   CheckCircle2,
   FileText,
-  Rocket,
-  Cpu,
-  ArrowUpRight,
   Layers,
   ChevronRight
 } from "lucide-react";
@@ -111,7 +110,7 @@ export function DashboardView() {
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-white">
-                Isaac's Executive Verdict (No Sugarcoating)
+                Isaac&apos;s Executive Verdict (No Sugarcoating)
               </span>
             </div>
             <p className="text-xs text-neutral-300 leading-relaxed font-sans">

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/lib/store/app-context";
-import { Cpu, Search, Bell, Sparkles, ChevronDown, Shield, CheckCircle2, User as UserIcon, LogOut } from "lucide-react";
+import { Cpu, Search, Bell, ChevronDown, Shield, CheckCircle2, User as UserIcon, LogOut } from "lucide-react";
 
 export function Navbar() {
   const { user, founderProfile, setActiveTab } = useApp();
@@ -88,6 +88,7 @@ export function Navbar() {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 p-1 rounded-full border border-white/10 hover:border-white/30 transition-all"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
                 alt={user?.name}

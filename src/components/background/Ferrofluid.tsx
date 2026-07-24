@@ -14,7 +14,7 @@ const hexToRGB = (hex: string) => {
   return [r, g, b];
 };
 
-const prepColors = (input: any) => {
+const prepColors = (input: string[] | (string | number[])[] | undefined) => {
   const base = (input && input.length ? input : ['#4F46E5', '#06B6D4', '#E0F2FE']).slice(0, MAX_COLORS);
   const count = base.length;
   const arr: number[][] = [];
@@ -217,7 +217,7 @@ export interface FerrofluidProps {
   mouseStrength?: number;
   mouseRadius?: number;
   mouseDampening?: number;
-  mixBlendMode?: any;
+  mixBlendMode?: React.CSSProperties['mixBlendMode'];
 }
 
 export default function Ferrofluid({
@@ -243,10 +243,10 @@ export default function Ferrofluid({
 }: FerrofluidProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
-  const programRef = useRef<any>(null);
-  const meshRef = useRef<any>(null);
-  const geometryRef = useRef<any>(null);
-  const rendererRef = useRef<any>(null);
+  const programRef = useRef<Program | null>(null);
+  const meshRef = useRef<Mesh | null>(null);
+  const geometryRef = useRef<Triangle | null>(null);
+  const rendererRef = useRef<Renderer | null>(null);
   const mouseTargetRef = useRef([0, 0]);
   const lastTimeRef = useRef(0);
 
@@ -365,8 +365,9 @@ export default function Ferrofluid({
       if (canvas.parentElement === container) {
         container.removeChild(canvas);
       }
-      const callIfFn = (obj: any, key: string) => {
-        const fn = obj && obj[key];
+      const callIfFn = (obj: unknown, key: string) => {
+        if (!obj || typeof obj !== 'object') return;
+        const fn = (obj as Record<string, unknown>)[key];
         if (typeof fn === 'function') {
           fn.call(obj);
         }

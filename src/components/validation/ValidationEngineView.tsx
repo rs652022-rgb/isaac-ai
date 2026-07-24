@@ -76,7 +76,7 @@ export function ValidationEngineView() {
         ].map((t) => (
           <button
             key={t.id}
-            onClick={() => setActiveTab(t.id as any)}
+            onClick={() => setActiveTab(t.id as "swot" | "pestle" | "porters" | "verdict")}
             className={`pb-3 transition-colors ${
               activeTab === t.id
                 ? "border-b-2 border-white text-white font-bold"

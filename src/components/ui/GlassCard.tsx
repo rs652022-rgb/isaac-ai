@@ -12,7 +12,6 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function GlassCard({
   children,
   className,
-  glow = "none",
   hoverable = true,
   ...props
 }: GlassCardProps) {

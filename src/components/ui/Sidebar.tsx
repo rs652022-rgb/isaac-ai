@@ -88,7 +88,7 @@ export function Sidebar() {
           <span>Need Founder Advice?</span>
         </div>
         <p className="text-[11px] text-neutral-400 mb-3 leading-relaxed">
-          Ask Devil's Advocate Agent to stress test your business model.
+          Ask Devil&apos;s Advocate Agent to stress test your business model.
         </p>
         <button
           onClick={() => setActiveTab("chat")}

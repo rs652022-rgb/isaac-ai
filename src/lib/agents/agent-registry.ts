@@ -1,4 +1,4 @@
-import { AIAgent, FounderProfile, StartupScores, RoadmapTask, IncorporationOption, GeneratedDocument } from "@/types";
+import { AIAgent, FounderProfile, StartupScores } from "@/types";
 
 export const AI_AGENTS: AIAgent[] = [
   {

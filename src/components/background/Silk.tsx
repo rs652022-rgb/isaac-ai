@@ -71,7 +71,7 @@ void main() {
 }
 `;
 
-const SilkPlane = forwardRef<Mesh, { uniforms: any }>(function SilkPlane({ uniforms }, ref) {
+const SilkPlane = forwardRef<Mesh, { uniforms: { [key: string]: { value: unknown } } }>(function SilkPlane({ uniforms }, ref) {
   const { viewport } = useThree();
   const internalRef = useRef<Mesh>(null);
   const activeRef = (ref && typeof ref !== 'function' ? ref : internalRef) as React.RefObject<Mesh>;
@@ -84,7 +84,7 @@ const SilkPlane = forwardRef<Mesh, { uniforms: any }>(function SilkPlane({ unifo
 
   useFrame((_, delta) => {
     if (activeRef.current) {
-      const mat = activeRef.current.material as any;
+      const mat = activeRef.current.material as { uniforms?: { uTime?: { value: number } } };
       if (mat && mat.uniforms && mat.uniforms.uTime) {
         mat.uniforms.uTime.value += 0.1 * delta;
       }

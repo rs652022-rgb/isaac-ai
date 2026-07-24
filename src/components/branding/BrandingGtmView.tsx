@@ -95,7 +95,7 @@ export function BrandingGtmView() {
         <div className="p-4 rounded-xl bg-black font-mono text-xs text-neutral-300 leading-relaxed">
           Subject: Quick question about startup legal & pitch decks...<br /><br />
           Hey [Founder First Name],<br /><br />
-          Noticed you're building in the {founderProfile.industry} space. Most first-time founders waste $5k+ on standard incorporation forms or pitch deck reviews.<br /><br />
+          Noticed you&apos;re building in the {founderProfile.industry} space. Most first-time founders waste $5k+ on standard incorporation forms or pitch deck reviews.<br /><br />
           We built {founderProfile.startupName} — an autonomous AI Co-Founder operating system that audits your pitch deck and handles legal compliance in minutes.<br /><br />
           Would you be open to a 3-minute demo link?
         </div>
