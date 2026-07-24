@@ -2,6 +2,7 @@
 
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
 import React, { useEffect, useRef } from 'react';
+
 import './Iridescence.css';
 
 const vertexShader = `
@@ -47,36 +48,27 @@ void main() {
 }
 `;
 
-export interface IridescenceProps {
+interface IridescenceProps extends React.HTMLAttributes<HTMLDivElement> {
   color?: [number, number, number];
   speed?: number;
   amplitude?: number;
   mouseReact?: boolean;
-  className?: string;
 }
 
-export default function Iridescence({
-  color = [1, 1, 1],
-  speed = 1.0,
-  amplitude = 0.1,
-  mouseReact = false,
-  className = "",
-  ...rest
-}: IridescenceProps) {
+export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }: IridescenceProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
   const mousePos = useRef({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
     if (!ctnDom.current) return;
     const ctn = ctnDom.current;
-    const renderer = new Renderer({ alpha: true });
+    const renderer = new Renderer();
     const gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(1, 1, 1, 1);
 
     let program: any;
 
     function resize() {
-      if (!ctn) return;
       const scale = 1;
       renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
       if (program) {
@@ -115,11 +107,6 @@ export default function Iridescence({
       renderer.render({ scene: mesh });
     }
     animateId = requestAnimationFrame(update);
-    gl.canvas.style.position = 'absolute';
-    gl.canvas.style.inset = '0';
-    gl.canvas.style.width = '100%';
-    gl.canvas.style.height = '100%';
-    gl.canvas.style.pointerEvents = 'none';
     ctn.appendChild(gl.canvas);
 
     function handleMouseMove(e: MouseEvent) {
@@ -140,12 +127,10 @@ export default function Iridescence({
       if (mouseReact) {
         ctn.removeEventListener('mousemove', handleMouseMove);
       }
-      if (gl.canvas && gl.canvas.parentElement === ctn) {
-        ctn.removeChild(gl.canvas);
-      }
+      ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [color, speed, amplitude, mouseReact]);
 
-  return <div ref={ctnDom} className={`iridescence-container ${className}`} {...rest} />;
+  return <div ref={ctnDom} className="iridescence-container" {...rest} />;
 }
