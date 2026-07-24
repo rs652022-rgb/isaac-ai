@@ -58,20 +58,21 @@ export function LandingPage() {
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
       {/* Iridescence WebGL Background Shader */}
-      <div className="absolute inset-0 -z-10 pointer-events-none opacity-50">
-        <Iridescence
-          color={[1, 1, 1]}
-          mouseReact={false}
-          amplitude={0.08}
-          speed={0.75}
-        />
-      </div>
+      <Iridescence
+        color={[0.2, 0.5, 1.0]}
+        mouseReact={true}
+        amplitude={0.1}
+        speed={1.0}
+      />
 
       {/* Dark Gradient Overlay for Maximum Visual Depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 -z-10 pointer-events-none" />
+      <div 
+        className="fixed inset-0 pointer-events-none -z-10" 
+        style={{ background: 'linear-gradient(to bottom, rgba(5,8,15,0.55), rgba(8,12,25,0.72), rgba(5,8,15,0.82))' }} 
+      />
 
       {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-radial-grid opacity-20 pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-radial-grid opacity-20 pointer-events-none -z-10" />
 
       {/* 1. Floating Glass Navbar */}
       <header className="sticky top-4 z-50 px-4 sm:px-6 max-w-7xl mx-auto">
@@ -143,7 +144,7 @@ export function LandingPage() {
           </GlowingButton>
           <button
             onClick={() => setActiveTab("auth")}
-            className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-black/60 hover:bg-neutral-900 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
           >
             Sign In
           </button>
@@ -282,7 +283,7 @@ export function LandingPage() {
             <GlowingButton onClick={() => setActiveTab("onboarding")} variant="secondary" className="w-full">Get Started Free</GlowingButton>
           </GlassCard>
 
-          <GlassCard className="p-8 space-y-6 flex flex-col justify-between border-white/30 bg-neutral-950 relative">
+          <GlassCard className="p-8 space-y-6 flex flex-col justify-between border-emerald-500/30 bg-emerald-950/10 relative">
             <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-white text-black text-[9px] font-bold uppercase tracking-widest font-mono">Recommended</div>
             <div className="space-y-4">
               <h3 className="text-base font-bold text-white">Founder Pro</h3>

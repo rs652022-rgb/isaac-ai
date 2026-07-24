@@ -1,7 +1,8 @@
-"use client";
+<USER_REQUEST>
+add this animation as a background animation in the homepage of the web application 
 
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import './Iridescence.css';
 
@@ -48,15 +49,8 @@ void main() {
 }
 `;
 
-export interface IridescenceProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "color"> {
-  color?: [number, number, number];
-  speed?: number;
-  amplitude?: number;
-  mouseReact?: boolean;
-}
-
-export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }: IridescenceProps) {
-  const ctnDom = useRef<HTMLDivElement>(null);
+export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }) {
+  const ctnDom = useRef(null);
   const mousePos = useRef({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
@@ -66,7 +60,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     const gl = renderer.gl;
     gl.clearColor(1, 1, 1, 1);
 
-    let program: Program;
+    let program;
 
     function resize() {
       const scale = 1;
@@ -99,9 +93,9 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     });
 
     const mesh = new Mesh(gl, { geometry, program });
-    let animateId: number;
+    let animateId;
 
-    function update(t: number) {
+    function update(t) {
       animateId = requestAnimationFrame(update);
       program.uniforms.uTime.value = t * 0.001;
       renderer.render({ scene: mesh });
@@ -109,7 +103,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     animateId = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);
 
-    function handleMouseMove(e: MouseEvent) {
+    function handleMouseMove(e) {
       const rect = ctn.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = 1.0 - (e.clientY - rect.top) / rect.height;
@@ -134,3 +128,16 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
 
   return <div ref={ctnDom} className="iridescence-container" {...rest} />;
 }
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-25T00:39:33+05:30.
+
+The user's current state is as follows:
+Other open documents:
+- e:\jobpilot\extension\popup.js (LANGUAGE_JAVASCRIPT)
+- e:\jobpilot\extension\manifest.json (LANGUAGE_JSON)
+- e:\jobpilot\.env (LANGUAGE_UNSPECIFIED)
+- e:\jobpilot\extension\background.js (LANGUAGE_JAVASCRIPT)
+- e:\jobpilot\scratch\test-runtime-login.ts (LANGUAGE_TYPESCRIPT)
+</ADDITIONAL_METADATA>

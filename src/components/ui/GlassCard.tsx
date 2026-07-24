@@ -20,8 +20,8 @@ export function GlassCard({
     <div
       className={twMerge(
         clsx(
-          "relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#050505]/90 backdrop-blur-xl transition-all duration-300",
-          hoverable && "hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#0a0a0a]",
+          "relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
+          hoverable && "hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.05] hover:shadow-[0_8px_30px_rgb(255,255,255,0.05)]",
           className
         )
       )}
