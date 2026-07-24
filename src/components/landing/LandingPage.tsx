@@ -34,16 +34,17 @@ export function LandingPage() {
         mouseReact={false}
         amplitude={0.08}
         speed={0.75}
+        className="z-0"
       />
 
       {/* Subtle Black Overlay for Readability */}
-      <div className="absolute inset-0 bg-black/45 pointer-events-none -z-10" />
+      <div className="absolute inset-0 bg-black/40 pointer-events-none z-0" />
 
       {/* Background Radial Light */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-white/[0.06] via-transparent to-transparent blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-white/[0.06] via-transparent to-transparent blur-[120px] pointer-events-none rounded-full z-0" />
 
       {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-radial-grid opacity-25 pointer-events-none" />
+      <div className="absolute inset-0 bg-radial-grid opacity-25 pointer-events-none z-0" />
 
       {/* Top Header Banner */}
       <header className="relative z-20 flex items-center justify-between px-6 lg:px-12 py-6 border-b border-white/[0.08] max-w-7xl mx-auto">
@@ -168,7 +169,7 @@ export function LandingPage() {
       </section>
 
       {/* Feature Grid */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/[0.08]">
+      <section id="features" className="relative z-10 py-24 px-6 max-w-7xl mx-auto border-t border-white/[0.08]">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-4">
             Everything A Founder Needs <br />
@@ -213,7 +214,7 @@ export function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/[0.08] text-center">
+      <section id="pricing" className="relative z-10 py-24 px-6 max-w-7xl mx-auto border-t border-white/[0.08] text-center">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Transparent Pricing</h2>
         <p className="text-neutral-400 text-sm mb-16">Cancel anytime. 14-day money-back guarantee.</p>
 
@@ -262,7 +263,7 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/[0.08] text-center text-xs text-neutral-500 font-mono">
+      <footer className="relative z-10 py-12 border-t border-white/[0.08] text-center text-xs text-neutral-500 font-mono">
         <p>© 2026 ISAAC.AI Inc. All rights reserved. The AI Co-Founder Every Founder Deserves.</p>
       </footer>
     </div>

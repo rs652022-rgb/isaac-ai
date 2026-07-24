@@ -81,6 +81,11 @@ export default function Iridescence({
       premultipliedAlpha: false
     });
     const gl = renderer.gl;
+    gl.canvas.style.position = "absolute";
+    gl.canvas.style.inset = "0";
+    gl.canvas.style.width = "100%";
+    gl.canvas.style.height = "100%";
+    gl.canvas.style.pointerEvents = "none";
     container.appendChild(gl.canvas);
 
     const geometry = new Triangle(gl);
@@ -152,7 +157,7 @@ export default function Iridescence({
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 w-full h-full pointer-events-none -z-10 ${className}`}
+      className={`absolute inset-0 w-full h-full pointer-events-none z-0 ${className}`}
     />
   );
 }

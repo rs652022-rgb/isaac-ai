@@ -107,7 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [roadmapTasks, setRoadmapTasks] = useState<RoadmapTask[]>(INITIAL_ROADMAP);
   const [documents, setDocuments] = useState<GeneratedDocument[]>(INITIAL_DOCUMENTS);
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [activeTab, setActiveTab] = useState<string>("landing");
 
   const [messages, setMessages] = useState<AgentMessage[]>([
     {
