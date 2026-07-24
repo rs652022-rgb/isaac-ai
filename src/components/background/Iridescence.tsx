@@ -48,7 +48,7 @@ void main() {
 }
 `;
 
-interface IridescenceProps extends React.HTMLAttributes<HTMLDivElement> {
+interface IridescenceProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "color"> {
   color?: [number, number, number];
   speed?: number;
   amplitude?: number;
@@ -66,6 +66,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     const gl = renderer.gl;
     gl.clearColor(1, 1, 1, 1);
 
+    // eslint-disable-next-line prefer-const, @typescript-eslint/no-explicit-any
     let program: any;
 
     function resize() {
