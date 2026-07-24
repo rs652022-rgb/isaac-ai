@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { AppProvider, useApp } from "@/lib/store/app-context";
+import { useSession, SessionProvider } from "next-auth/react";
 import { Navbar } from "@/components/ui/Navbar";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { CommandPalette } from "@/components/ui/CommandPalette";
@@ -21,7 +22,15 @@ import { AdminPanelView } from "@/components/admin/AdminPanelView";
 import { BillingView } from "@/components/billing/BillingView";
 
 function MainAppShell() {
-  const { activeTab } = useApp();
+  const { activeTab, setActiveTab } = useApp();
+  const { status } = useSession();
+
+  useEffect(() => {
+    // If not authenticated, protect routes by redirecting to auth tab
+    if (status === "unauthenticated" && activeTab !== "landing" && activeTab !== "auth") {
+      setActiveTab("auth");
+    }
+  }, [status, activeTab, setActiveTab]);
 
   if (activeTab === "landing") {
     return <LandingPage />;
@@ -61,8 +70,10 @@ function MainAppShell() {
 
 export default function Home() {
   return (
-    <AppProvider>
-      <MainAppShell />
-    </AppProvider>
+    <SessionProvider>
+      <AppProvider>
+        <MainAppShell />
+      </AppProvider>
+    </SessionProvider>
   );
 }

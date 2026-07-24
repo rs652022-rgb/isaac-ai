@@ -7,29 +7,42 @@ import { GlowingButton } from "@/components/ui/GlowingButton";
 import { Role } from "@/types";
 import { Mail, Key, ArrowRight, Code } from "lucide-react";
 
+import { signIn } from "next-auth/react";
+
 export function AuthModal() {
-  const { setUser, setActiveTab } = useApp();
+  const { setActiveTab } = useApp();
   const [selectedRole, setSelectedRole] = useState<Role>("Founder");
   const [email, setEmail] = useState("alex@isaacai.io");
   const [password, setPassword] = useState("••••••••••••");
   const [loading, setLoading] = useState(false);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setUser({
-        id: `usr_${Date.now()}`,
-        name: email.split("@")[0] || "Founder",
+    
+    try {
+      const res = await signIn("credentials", {
         email,
+        password,
         role: selectedRole,
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        subscriptionPlan: "Pro",
-        createdAt: new Date().toISOString()
+        redirect: false,
       });
+      
+      if (res?.error) {
+        console.error("Auth error:", res.error);
+        // Could show toast here
+      } else {
+        setActiveTab("onboarding");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
       setLoading(false);
-      setActiveTab("onboarding");
-    }, 800);
+    }
+  };
+
+  const handleOAuth = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -73,14 +86,14 @@ export function AuthModal() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={handleAuth}
+            onClick={() => handleOAuth("google")}
             className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-xs font-medium text-white transition-colors"
           >
             <span>Google</span>
           </button>
           <button
             type="button"
-            onClick={handleAuth}
+            onClick={() => handleOAuth("github")}
             className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-xs font-medium text-white transition-colors"
           >
             <Code className="w-3.5 h-3.5 text-neutral-400" />
@@ -96,7 +109,7 @@ export function AuthModal() {
         </div>
 
         {/* Auth Form */}
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs text-neutral-300">Email Address</label>
             <div className="relative">

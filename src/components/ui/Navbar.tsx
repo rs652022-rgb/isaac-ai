@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { Cpu, Search, Bell, ChevronDown, Shield, CheckCircle2, User as UserIcon, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export function Navbar() {
   const { user, founderProfile, setActiveTab } = useApp();
@@ -119,7 +120,7 @@ export function Navbar() {
                 </button>
                 <div className="border-t border-white/10 pt-1">
                   <button
-                    onClick={() => { setActiveTab("auth"); setShowUserMenu(false); }}
+                    onClick={() => signOut({ callbackUrl: "/" })}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-red-400 hover:bg-red-950/30"
                   >
                     <LogOut className="w-3.5 h-3.5" />

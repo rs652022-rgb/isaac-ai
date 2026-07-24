@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
-import { User, FounderProfile, AgentMessage, AIAgent, StartupScores, RoadmapTask, GeneratedDocument } from "@/types";
+import { User, FounderProfile, AgentMessage, AIAgent, StartupScores, RoadmapTask, GeneratedDocument, Role } from "@/types";
 import { AI_AGENTS, analyzeStartupIdea } from "@/lib/agents/agent-registry";
+import { useSession } from "next-auth/react";
 
 interface AppContextType {
   user: User | null;
@@ -54,7 +55,23 @@ const INITIAL_DOCUMENTS: GeneratedDocument[] = [];
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { data: session } = useSession();
+  const sessionUser = session?.user;
+
+  // Map NextAuth user to App User type
+  const user: User | null = sessionUser ? {
+    id: sessionUser.id || "",
+    name: sessionUser.name || "Founder",
+    email: sessionUser.email || "",
+    role: (sessionUser.role as Role) || "Founder",
+    avatar: sessionUser.image || "👤",
+    subscriptionPlan: (sessionUser.subscriptionPlan as "Free" | "Pro" | "Business" | "Enterprise") || "Pro",
+    createdAt: new Date().toISOString()
+  } : null;
+
+  // We provide a no-op setUser to not break existing components if they call it, 
+  // though they should really use signIn/signOut from next-auth/react
+  const setUser = () => {};
 
   const [founderProfile, setFounderProfile] = useState<FounderProfile>(EMPTY_PROFILE);
   const [selectedAgent, setSelectedAgent] = useState<AIAgent>(AI_AGENTS[0]); // Orchestrator
