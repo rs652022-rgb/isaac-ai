@@ -36,10 +36,14 @@ export function DashboardView() {
             <span>ISAAC.AI OS :: ACTIVE SYSTEM CONTEXT</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {founderProfile.startupName}
+            {founderProfile.startupName || "Your Startup"}
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
-            "{founderProfile.tagline}" • <span className="font-serif-accent italic text-neutral-300">{founderProfile.industry}</span> • {founderProfile.fundingStage} Stage
+            {founderProfile.tagline ? `"${founderProfile.tagline}" • ` : ""}
+            <span className="font-serif-accent italic text-neutral-300">
+              {founderProfile.industry || "Industry Analysis Pending"}
+            </span>
+            {founderProfile.fundingStage ? ` • ${founderProfile.fundingStage} Stage` : ""}
           </p>
         </div>
 

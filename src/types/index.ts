@@ -66,6 +66,7 @@ export interface AgentMessage {
   timestamp: string;
   reasoning?: string[];
   suggestedActions?: string[];
+  action?: "login";
   artifacts?: {
     type: "score" | "document" | "roadmap" | "code" | "chart" | "checklist";
     title: string;
