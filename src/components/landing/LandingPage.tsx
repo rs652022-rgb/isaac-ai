@@ -19,8 +19,8 @@ import {
   Code
 } from "lucide-react";
 
-// Client-only dynamic import of WebGL Silk background shader
-const Silk = dynamic(() => import("@/components/background/Silk"), {
+// Client-only dynamic import of Ferrofluid WebGL background shader
+const Ferrofluid = dynamic(() => import("@/components/background/Ferrofluid"), {
   ssr: false
 });
 
@@ -29,18 +29,27 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
-      {/* Silk Background Shader */}
-      <div className="absolute inset-0 -z-10 pointer-events-none opacity-60">
-        <Silk
-          speed={5}
+      {/* Ferrofluid Background Shader */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <Ferrofluid
+          colors={["#ffffff", "#ffffff", "#ffffff"]}
+          speed={0.5}
           scale={1}
-          color="#7B7481"
-          noiseIntensity={1.5}
-          rotation={0}
+          turbulence={1}
+          fluidity={0.1}
+          rimWidth={0.2}
+          sharpness={3}
+          shimmer={1}
+          glow={2}
+          flowDirection="down"
+          opacity={1}
+          mouseInteraction={true}
+          mouseStrength={1}
+          mouseRadius={0.3}
         />
       </div>
 
-      {/* Dark overlay for optimal contrast */}
+      {/* Dark overlay for optimal text contrast */}
       <div className="absolute inset-0 bg-black/40 -z-10 pointer-events-none"></div>
 
       {/* Existing Homepage Content */}
