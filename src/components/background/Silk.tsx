@@ -73,16 +73,18 @@ void main() {
 
 const SilkPlane = forwardRef<Mesh, { uniforms: any }>(function SilkPlane({ uniforms }, ref) {
   const { viewport } = useThree();
+  const internalRef = useRef<Mesh>(null);
+  const activeRef = (ref && typeof ref !== 'function' ? ref : internalRef) as React.RefObject<Mesh>;
 
   useLayoutEffect(() => {
-    if (ref && typeof ref !== 'function' && ref.current) {
-      ref.current.scale.set(viewport.width, viewport.height, 1);
+    if (activeRef.current) {
+      activeRef.current.scale.set(viewport.width, viewport.height, 1);
     }
-  }, [ref, viewport]);
+  }, [activeRef, viewport]);
 
   useFrame((_, delta) => {
-    if (ref && typeof ref !== 'function' && ref.current) {
-      const mat = ref.current.material as any;
+    if (activeRef.current) {
+      const mat = activeRef.current.material as any;
       if (mat && mat.uniforms && mat.uniforms.uTime) {
         mat.uniforms.uTime.value += 0.1 * delta;
       }
@@ -90,7 +92,7 @@ const SilkPlane = forwardRef<Mesh, { uniforms: any }>(function SilkPlane({ unifo
   });
 
   return (
-    <mesh ref={ref}>
+    <mesh ref={activeRef}>
       <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} />
     </mesh>
@@ -131,7 +133,11 @@ export default function Silk({
 
   return (
     <div className={`w-full h-full absolute inset-0 pointer-events-none ${className}`}>
-      <Canvas dpr={[1, 2]} frameloop="always">
+      <Canvas
+        dpr={[1, 2]}
+        frameloop="always"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+      >
         <SilkPlane ref={meshRef} uniforms={uniforms} />
       </Canvas>
     </div>

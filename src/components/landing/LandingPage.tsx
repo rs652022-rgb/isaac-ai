@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { RadialProgress } from "@/components/ui/RadialProgress";
-import Silk from "@/components/background/Silk";
 import {
   Sparkles,
   ArrowRight,
@@ -19,24 +19,29 @@ import {
   Code
 } from "lucide-react";
 
+// Client-only dynamic import of WebGL Silk background shader
+const Silk = dynamic(() => import("@/components/background/Silk"), {
+  ssr: false
+});
+
 export function LandingPage() {
   const { setActiveTab } = useApp();
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
       {/* Silk Background Shader */}
-      <div className="absolute inset-0 -z-10 pointer-events-none opacity-40">
+      <div className="absolute inset-0 -z-10 pointer-events-none opacity-60">
         <Silk
           speed={5}
           scale={1}
-          color="#ffffff"
+          color="#7B7481"
           noiseIntensity={1.5}
           rotation={0}
         />
       </div>
 
-      {/* Dark overlay for optimal text readability */}
-      <div className="absolute inset-0 bg-black/50 -z-10 pointer-events-none"></div>
+      {/* Dark overlay for optimal contrast */}
+      <div className="absolute inset-0 bg-black/40 -z-10 pointer-events-none"></div>
 
       {/* Existing Homepage Content */}
       <div className="relative z-10">
