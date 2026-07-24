@@ -5,22 +5,18 @@ import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { RadialProgress } from "@/components/ui/RadialProgress";
-import Iridescence from "@/components/background/Iridescence";
+import Silk from "@/components/background/Silk";
 import {
   Sparkles,
   ArrowRight,
   ShieldAlert,
   Cpu,
   Zap,
-  TrendingUp,
   Globe,
   FileText,
   CheckCircle2,
-  Lock,
-  Layers,
   Flame,
-  Code,
-  Users
+  Code
 } from "lucide-react";
 
 export function LandingPage() {
@@ -28,18 +24,19 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
-      {/* Iridescence Background */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
-        <Iridescence
-          color={[1, 1, 1]}
-          mouseReact={false}
-          amplitude={0.08}
-          speed={0.75}
+      {/* Silk Background Shader */}
+      <div className="absolute inset-0 -z-10 pointer-events-none opacity-40">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#ffffff"
+          noiseIntensity={1.5}
+          rotation={0}
         />
       </div>
 
-      {/* Existing dark overlay */}
-      <div className="absolute inset-0 bg-black/45 -z-10 pointer-events-none"></div>
+      {/* Dark overlay for optimal text readability */}
+      <div className="absolute inset-0 bg-black/50 -z-10 pointer-events-none"></div>
 
       {/* Existing Homepage Content */}
       <div className="relative z-10">
@@ -87,7 +84,7 @@ export function LandingPage() {
             <span className="w-1 h-1 rounded-full bg-white" />
           </div>
 
-          {/* Hero Title with Instrument Serif Emphasis */}
+          {/* Hero Title */}
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 text-white">
             The AI Co-Founder <br />
             <span className="font-serif-accent italic font-normal text-neutral-300">
