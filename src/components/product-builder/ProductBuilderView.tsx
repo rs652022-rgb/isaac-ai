@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowingButton } from "@/components/ui/GlowingButton";
-import { Code2, Database, Server, Cpu, Layers, Terminal, CheckCircle2, Play } from "lucide-react";
+import { Code2 } from "lucide-react";
 
 export function ProductBuilderView() {
   const { founderProfile } = useApp();
@@ -49,14 +48,14 @@ model Startup {
 
   return (
     <div className="space-y-8 pb-12 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
         <div>
-          <div className="flex items-center space-x-2 text-xs text-indigo-400 font-mono mb-1">
-            <Code2 className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-[10px] text-neutral-400 font-mono mb-1">
+            <Code2 className="w-3.5 h-3.5 text-white" />
             <span>PRODUCT & TECH ARCHITECTURE ARCHITECT</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">Product Builder</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-neutral-400 mt-1">
             Production-grade DB Schemas, API blueprints, and Next.js 14 architecture.
           </p>
         </div>
@@ -64,39 +63,39 @@ model Startup {
 
       {/* Recommended Tech Stack Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <GlassCard glow="indigo" className="p-4 space-y-2">
-          <span className="text-[10px] text-indigo-400 font-mono uppercase">Frontend Framework</span>
-          <p className="text-sm font-bold text-white">Next.js 14 (App Router)</p>
-          <p className="text-[11px] text-slate-400">TypeScript + Tailwind CSS + Framer Motion</p>
+        <GlassCard className="p-4 space-y-1">
+          <span className="text-[9px] text-neutral-500 font-mono uppercase">Framework</span>
+          <p className="text-xs font-bold text-white">Next.js 14 (App Router)</p>
+          <p className="text-[10px] text-neutral-400">TypeScript + Tailwind CSS</p>
         </GlassCard>
-        <GlassCard glow="cyan" className="p-4 space-y-2">
-          <span className="text-[10px] text-cyan-400 font-mono uppercase">Database Engine</span>
-          <p className="text-sm font-bold text-white">PostgreSQL + Prisma</p>
-          <p className="text-[11px] text-slate-400">pgvector for AI RAG embeddings</p>
+        <GlassCard className="p-4 space-y-1">
+          <span className="text-[9px] text-neutral-500 font-mono uppercase">Database</span>
+          <p className="text-xs font-bold text-white">PostgreSQL + Prisma</p>
+          <p className="text-[10px] text-neutral-400">pgvector for AI RAG embeddings</p>
         </GlassCard>
-        <GlassCard glow="emerald" className="p-4 space-y-2">
-          <span className="text-[10px] text-emerald-400 font-mono uppercase">State & Cache</span>
-          <p className="text-sm font-bold text-white">Redis (Upstash)</p>
-          <p className="text-[11px] text-slate-400">Rate limiting & LLM token cache</p>
+        <GlassCard className="p-4 space-y-1">
+          <span className="text-[9px] text-neutral-500 font-mono uppercase">Cache</span>
+          <p className="text-xs font-bold text-white">Redis (Upstash)</p>
+          <p className="text-[10px] text-neutral-400">Rate limiting & LLM token cache</p>
         </GlassCard>
-        <GlassCard glow="purple" className="p-4 space-y-2">
-          <span className="text-[10px] text-purple-400 font-mono uppercase">AI Engine SDK</span>
-          <p className="text-sm font-bold text-white">Vercel AI SDK</p>
-          <p className="text-[11px] text-slate-400">Multi-agent streaming & function calls</p>
+        <GlassCard className="p-4 space-y-1">
+          <span className="text-[9px] text-neutral-500 font-mono uppercase">AI SDK</span>
+          <p className="text-xs font-bold text-white">Vercel AI SDK</p>
+          <p className="text-[10px] text-neutral-400">Multi-agent streaming</p>
         </GlassCard>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 space-x-4 text-xs font-medium">
+      <div className="flex border-b border-white/[0.08] space-x-6 text-xs font-medium">
         <button
           onClick={() => setActiveTab("schema")}
-          className={`pb-3 ${activeTab === "schema" ? "border-b-2 border-indigo-500 text-white font-bold" : "text-slate-400"}`}
+          className={`pb-3 ${activeTab === "schema" ? "border-b-2 border-white text-white font-bold" : "text-neutral-500"}`}
         >
           Prisma Database Schema
         </button>
         <button
           onClick={() => setActiveTab("api")}
-          className={`pb-3 ${activeTab === "api" ? "border-b-2 border-indigo-500 text-white font-bold" : "text-slate-400"}`}
+          className={`pb-3 ${activeTab === "api" ? "border-b-2 border-white text-white font-bold" : "text-neutral-500"}`}
         >
           API Route Specs
         </button>
@@ -104,11 +103,11 @@ model Startup {
 
       {activeTab === "schema" && (
         <GlassCard className="p-4 space-y-3 font-mono">
-          <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
+          <div className="flex items-center justify-between text-xs text-neutral-400 border-b border-white/10 pb-2">
             <span>prisma/schema.prisma</span>
-            <span className="text-emerald-400">PostgreSQL Ready</span>
+            <span className="text-white">PostgreSQL Ready</span>
           </div>
-          <pre className="p-4 rounded-xl bg-slate-950 text-xs text-indigo-300 leading-relaxed overflow-x-auto">
+          <pre className="p-4 rounded-xl bg-black text-xs text-neutral-300 leading-relaxed overflow-x-auto">
             {SCHEMA_SNIPPET}
           </pre>
         </GlassCard>
@@ -119,12 +118,12 @@ model Startup {
           {API_ENDPOINTS.map((api, idx) => (
             <GlassCard key={idx} className="p-4 flex items-center justify-between font-mono text-xs">
               <div className="flex items-center space-x-3">
-                <span className="px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 font-bold">
+                <span className="px-2 py-0.5 rounded bg-white text-black font-bold text-[10px]">
                   {api.method}
                 </span>
                 <span className="text-white font-semibold">{api.path}</span>
               </div>
-              <span className="text-slate-400">{api.desc}</span>
+              <span className="text-neutral-400">{api.desc}</span>
             </GlassCard>
           ))}
         </div>

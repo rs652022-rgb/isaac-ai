@@ -7,7 +7,7 @@ import { Search, X, Cpu, FileText, Zap, Shield, Rocket, DollarSign, Code, Users 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { setActiveTab, setSelectedAgent } = useApp();
+  const { setActiveTab } = useApp();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,29 +42,29 @@ export function CommandPalette() {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-indigo-500/30 bg-slate-950/90 shadow-[0_0_50px_rgba(99,102,241,0.25)] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#080808] shadow-2xl overflow-hidden">
         {/* Header Search Bar */}
         <div className="flex items-center px-4 py-3.5 border-b border-white/10">
-          <Search className="w-5 h-5 text-indigo-400 mr-3 shrink-0" />
+          <Search className="w-4 h-4 text-neutral-400 mr-3 shrink-0" />
           <input
             type="text"
-            placeholder="Type a command or search ISAAC OS... (Press Esc to close)"
+            placeholder="Type a command or search ISAAC OS..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
-            className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none"
+            className="w-full bg-transparent text-xs text-white placeholder-neutral-500 focus:outline-none font-sans"
           />
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-200"
+            className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Command List */}
-        <div className="max-h-96 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-80 overflow-y-auto p-2 space-y-1">
           {filteredCommands.length > 0 ? (
             filteredCommands.map((cmd) => {
               const IconComp = cmd.icon;
@@ -72,30 +72,30 @@ export function CommandPalette() {
                 <button
                   key={cmd.id}
                   onClick={cmd.action}
-                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-sm text-slate-300 hover:text-white hover:bg-indigo-600/20 hover:border hover:border-indigo-500/30 transition-all group"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs text-neutral-300 hover:text-white hover:bg-white/5 transition-all group"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-lg bg-slate-900 border border-white/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                      <IconComp className="w-4 h-4" />
+                    <div className="p-1.5 rounded-lg bg-neutral-900 border border-white/10 text-neutral-400 group-hover:text-white group-hover:border-white/20 transition-colors">
+                      <IconComp className="w-3.5 h-3.5" />
                     </div>
-                    <span>{cmd.label}</span>
+                    <span className="font-medium">{cmd.label}</span>
                   </div>
-                  <span className="text-xs text-slate-500 group-hover:text-indigo-300 font-mono">
+                  <span className="text-[10px] text-neutral-500 font-mono uppercase tracking-wider">
                     {cmd.category}
                   </span>
                 </button>
               );
             })
           ) : (
-            <div className="p-8 text-center text-sm text-slate-500">
+            <div className="p-8 text-center text-xs text-neutral-500">
               No matching commands found.
             </div>
           )}
         </div>
 
-        {/* Footer shortcuts info */}
-        <div className="flex items-center justify-between px-4 py-2 bg-slate-900/60 border-t border-white/5 text-[11px] text-slate-400">
-          <span>Use <strong>Ctrl+K</strong> to toggle command center</span>
+        {/* Footer info */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-950 border-t border-white/5 text-[10px] text-neutral-500 font-mono">
+          <span>Press <strong>ESC</strong> to dismiss</span>
           <span>ISAAC.AI OS v2.4</span>
         </div>
       </div>

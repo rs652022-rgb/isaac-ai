@@ -33,22 +33,22 @@ export function AuthModal() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#07080c] relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/20 blur-[140px] pointer-events-none rounded-full" />
+    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.03] blur-[140px] pointer-events-none rounded-full" />
 
-      <GlassCard glow="indigo" className="w-full max-w-md p-6 sm:p-8 space-y-6 relative z-10">
+      <GlassCard className="w-full max-w-md p-6 sm:p-8 space-y-6 relative z-10 border-white/10 bg-[#080808]">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex p-3 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 mb-2">
-            <Sparkles className="w-6 h-6 animate-pulse" />
+          <div className="inline-flex w-10 h-10 rounded-2xl bg-white text-black font-extrabold items-center justify-center text-xs mb-2">
+            IS
           </div>
-          <h2 className="text-2xl font-bold text-white">Welcome to ISAAC.AI</h2>
-          <p className="text-xs text-slate-400">The AI Founder Operating System</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Welcome to ISAAC.AI</h2>
+          <p className="text-xs text-neutral-400 font-serif-accent italic">The AI Founder Operating System</p>
         </div>
 
         {/* Role Selector */}
         <div className="space-y-2">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">
             Select Your Operating Role
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -59,8 +59,8 @@ export function AuthModal() {
                 onClick={() => setSelectedRole(r)}
                 className={`py-1.5 px-2 rounded-xl text-xs font-medium transition-all ${
                   selectedRole === r
-                    ? "bg-indigo-600 text-white border border-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.3)]"
-                    : "bg-slate-900/80 text-slate-400 border border-white/5 hover:text-white"
+                    ? "bg-white text-black font-semibold"
+                    : "bg-neutral-900 text-neutral-400 border border-white/5 hover:text-white"
                 }`}
               >
                 {r}
@@ -74,23 +74,23 @@ export function AuthModal() {
           <button
             type="button"
             onClick={handleAuth}
-            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 text-xs font-medium text-slate-200 transition-colors"
+            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-xs font-medium text-white transition-colors"
           >
             <span>Google</span>
           </button>
           <button
             type="button"
             onClick={handleAuth}
-            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 text-xs font-medium text-slate-200 transition-colors"
+            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-xs font-medium text-white transition-colors"
           >
-            <Code className="w-4 h-4 text-indigo-400" />
+            <Code className="w-3.5 h-3.5 text-neutral-400" />
             <span>GitHub</span>
           </button>
         </div>
 
         <div className="relative flex items-center justify-center">
           <div className="border-t border-white/10 w-full" />
-          <span className="absolute px-3 bg-slate-950 text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+          <span className="absolute px-3 bg-[#080808] text-[10px] text-neutral-500 uppercase tracking-widest font-mono">
             Or Email Login
           </span>
         </div>
@@ -98,9 +98,9 @@ export function AuthModal() {
         {/* Auth Form */}
         <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-300">Email Address</label>
+            <label className="text-xs text-neutral-300">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-neutral-500" />
               <input
                 type="email"
                 value={email}
@@ -112,9 +112,9 @@ export function AuthModal() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-300">Password</label>
+            <label className="text-xs text-neutral-300">Password</label>
             <div className="relative">
-              <Key className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+              <Key className="w-4 h-4 absolute left-3 top-3 text-neutral-500" />
               <input
                 type="password"
                 value={password}
@@ -135,7 +135,7 @@ export function AuthModal() {
           </GlowingButton>
         </form>
 
-        <p className="text-center text-[11px] text-slate-500">
+        <p className="text-center text-[10px] text-neutral-500 font-mono">
           By signing in, you accept ISAAC.AI Terms & Privacy Policy.
         </p>
       </GlassCard>

@@ -10,23 +10,16 @@ import {
   Cpu,
   Send,
   Sparkles,
-  Bot,
-  User,
   ChevronDown,
   ChevronUp,
   Brain,
-  Wrench,
   Flame,
   CheckCircle2,
-  Paperclip,
-  Code,
-  Shield,
-  Layers,
-  Copy
+  Code
 } from "lucide-react";
 
 export function AgentChatWorkspace() {
-  const { messages, sendMessage, selectedAgent, setSelectedAgent, isThinking, founderProfile } = useApp();
+  const { messages, sendMessage, selectedAgent, setSelectedAgent, isThinking } = useApp();
   const [inputText, setInputText] = useState("");
   const [showReasoning, setShowReasoning] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,13 +46,13 @@ export function AgentChatWorkspace() {
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col lg:flex-row gap-6 animate-in fade-in duration-300">
       {/* Left Column: 25 C-Suite Agent Selector Drawer */}
-      <div className="w-full lg:w-80 shrink-0 flex flex-col glass-panel rounded-2xl p-4 space-y-4 max-h-60 lg:max-h-full overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+      <div className="w-full lg:w-72 shrink-0 flex flex-col glass-panel rounded-2xl p-3.5 space-y-3 max-h-60 lg:max-h-full overflow-y-auto border-white/10 bg-[#050505]">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3 px-1">
           <div className="flex items-center space-x-2">
-            <Cpu className="w-4 h-4 text-indigo-400 animate-pulse" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white">C-Suite Agent Mesh</h2>
+            <Cpu className="w-3.5 h-3.5 text-white animate-pulse" />
+            <h2 className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Agent Mesh</h2>
           </div>
-          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300">
+          <span className="px-2 py-0.5 text-[9px] font-mono font-bold rounded-full bg-white/10 text-white">
             25 Active
           </span>
         </div>
@@ -71,22 +64,24 @@ export function AgentChatWorkspace() {
               <button
                 key={agent.id}
                 onClick={() => setSelectedAgent(agent)}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all group ${
+                className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all group ${
                   isSelected
-                    ? "bg-indigo-600/30 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                    : "hover:bg-white/5 border border-transparent"
+                    ? "bg-white text-black font-bold"
+                    : "hover:bg-white/5 text-neutral-400 hover:text-white"
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <span className="text-xl">{agent.avatar}</span>
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-base">{agent.avatar}</span>
                   <div>
-                    <p className={`text-xs font-bold ${isSelected ? "text-white" : "text-slate-300 group-hover:text-white"}`}>
+                    <p className={`text-xs ${isSelected ? "font-bold text-black" : "font-medium group-hover:text-white"}`}>
                       {agent.name}
                     </p>
-                    <p className="text-[10px] text-slate-400">{agent.title}</p>
+                    <p className={`text-[9px] font-mono ${isSelected ? "text-neutral-700" : "text-neutral-500"}`}>
+                      {agent.title}
+                    </p>
                   </div>
                 </div>
-                {isSelected && <Sparkles className="w-3.5 h-3.5 text-indigo-400" />}
+                {isSelected && <Sparkles className="w-3 h-3 text-black" />}
               </button>
             );
           })}
@@ -94,25 +89,25 @@ export function AgentChatWorkspace() {
       </div>
 
       {/* Main Chat Workspace */}
-      <div className="flex-1 flex flex-col glass-panel rounded-2xl overflow-hidden relative">
+      <div className="flex-1 flex flex-col glass-panel rounded-2xl overflow-hidden relative border-white/10 bg-[#050505]">
         {/* Chat Header: Active Agent Banner */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/10 bg-slate-950/80">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-black">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl">{selectedAgent.avatar}</span>
+            <span className="text-xl">{selectedAgent.avatar}</span>
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-bold text-white">{selectedAgent.name}</h2>
-                <span className="text-[10px] text-slate-400 font-mono">({selectedAgent.title})</span>
+                <h2 className="text-xs font-bold text-white">{selectedAgent.name}</h2>
+                <span className="text-[10px] text-neutral-500 font-mono">({selectedAgent.title})</span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-md">
+              <p className="text-[10px] text-neutral-400 truncate max-w-md font-mono">
                 Tools: {selectedAgent.tools.join(" • ")}
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-xs text-slate-400 font-mono">Persistent Memory Context Loaded</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-[10px] text-neutral-400 font-mono">Memory Context Loaded</span>
           </div>
         </div>
 
@@ -126,18 +121,16 @@ export function AgentChatWorkspace() {
                 className={`flex items-start space-x-3 ${isUser ? "flex-row-reverse space-x-reverse" : ""}`}
               >
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
-                    isUser
-                      ? "bg-purple-600 text-white"
-                      : "bg-gradient-to-tr from-indigo-600 to-purple-600 text-white"
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                    isUser ? "bg-white text-black" : "bg-neutral-900 border border-white/10 text-white"
                   }`}
                 >
                   {isUser ? "👤" : msg.avatar || "🤖"}
                 </div>
 
-                <div className={`space-y-2 max-w-2xl ${isUser ? "text-right" : ""}`}>
-                  <div className="flex items-center space-x-2 text-[11px] text-slate-400">
-                    <span className="font-semibold text-slate-300">{msg.senderName}</span>
+                <div className={`space-y-1.5 max-w-2xl ${isUser ? "text-right" : ""}`}>
+                  <div className="flex items-center space-x-2 text-[10px] text-neutral-500 font-mono">
+                    <span className="font-semibold text-neutral-300">{msg.senderName}</span>
                     <span>•</span>
                     <span>{msg.timestamp}</span>
                   </div>
@@ -146,29 +139,29 @@ export function AgentChatWorkspace() {
                   <div
                     className={`p-4 rounded-2xl text-xs leading-relaxed ${
                       isUser
-                        ? "bg-indigo-600/30 border border-indigo-500/40 text-white"
-                        : "glass-card text-slate-200 border-white/10"
+                        ? "bg-white text-black font-medium"
+                        : "glass-card text-neutral-200 border-white/10"
                     }`}
                   >
                     <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
 
-                    {/* Reasoning Accordion for Agent Messages */}
+                    {/* Reasoning Accordion */}
                     {!isUser && msg.reasoning && (
                       <div className="mt-3 pt-3 border-t border-white/10">
                         <button
                           onClick={() => toggleReasoning(msg.id)}
-                          className="flex items-center space-x-1 text-[10px] font-mono text-indigo-400 hover:text-indigo-300"
+                          className="flex items-center space-x-1 text-[10px] font-mono text-neutral-400 hover:text-white"
                         >
                           <Brain className="w-3 h-3" />
-                          <span>{showReasoning[msg.id] ? "Hide Agent Thinking" : "View Agent Reasoning Steps"}</span>
+                          <span>{showReasoning[msg.id] ? "Hide Thinking" : "View Reasoning Steps"}</span>
                           {showReasoning[msg.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                         </button>
 
                         {showReasoning[msg.id] && (
-                          <ul className="mt-2 space-y-1 pl-2 border-l border-indigo-500/30 text-[10px] text-slate-400 font-mono">
+                          <ul className="mt-2 space-y-1 pl-2 border-l border-white/20 text-[10px] text-neutral-400 font-mono">
                             {msg.reasoning.map((step, idx) => (
                               <li key={idx} className="flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-indigo-400" />
+                                <span className="w-1 h-1 rounded-full bg-white" />
                                 <span>{step}</span>
                               </li>
                             ))}
@@ -182,15 +175,15 @@ export function AgentChatWorkspace() {
             );
           })}
 
-          {/* Agent Thinking Skeleton Indicator */}
+          {/* Thinking State */}
           {isThinking && (
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-sm animate-pulse">
+              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-white/10 flex items-center justify-center text-white text-xs animate-pulse">
                 🤖
               </div>
-              <div className="p-3 rounded-2xl glass-card text-xs text-indigo-300 flex items-center space-x-2">
-                <Cpu className="w-4 h-4 animate-spin" />
-                <span>{selectedAgent.name} is synthesizing response across persistent memory...</span>
+              <div className="p-3 rounded-2xl glass-card text-xs text-neutral-300 flex items-center space-x-2 font-mono">
+                <Cpu className="w-3.5 h-3.5 animate-spin" />
+                <span>{selectedAgent.name} is synthesizing response...</span>
               </div>
             </div>
           )}
@@ -198,40 +191,40 @@ export function AgentChatWorkspace() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Action Suggested Prompts */}
-        <div className="px-6 py-2 border-t border-white/5 flex items-center space-x-2 overflow-x-auto text-[11px] no-scrollbar">
-          <span className="text-slate-500 font-mono whitespace-nowrap">Suggested:</span>
+        {/* Suggested Prompts */}
+        <div className="px-6 py-2 border-t border-white/5 flex items-center space-x-2 overflow-x-auto text-[10px] no-scrollbar font-mono">
+          <span className="text-neutral-500 whitespace-nowrap">Suggested:</span>
           <button
             onClick={() => sendMessage("Audit my business model for weakness", "devils_advocate")}
-            className="px-2.5 py-1 rounded-lg border border-white/10 bg-slate-900/80 hover:bg-slate-800 text-slate-300 whitespace-nowrap"
+            className="px-2.5 py-1 rounded-full border border-white/10 bg-neutral-950 hover:bg-white/10 text-neutral-300 whitespace-nowrap transition-colors"
           >
             🔥 Audit Business Model
           </button>
           <button
             onClick={() => sendMessage("Generate Delaware C-Corp vs India Pvt Ltd breakdown", "legal_advisor")}
-            className="px-2.5 py-1 rounded-lg border border-white/10 bg-slate-900/80 hover:bg-slate-800 text-slate-300 whitespace-nowrap"
+            className="px-2.5 py-1 rounded-full border border-white/10 bg-neutral-950 hover:bg-white/10 text-neutral-300 whitespace-nowrap transition-colors"
           >
             ⚖️ Legal Incorporation Guide
           </button>
           <button
             onClick={() => sendMessage("Draft 3-year Financial Model & Runway Projection", "finance_cfo")}
-            className="px-2.5 py-1 rounded-lg border border-white/10 bg-slate-900/80 hover:bg-slate-800 text-slate-300 whitespace-nowrap"
+            className="px-2.5 py-1 rounded-full border border-white/10 bg-neutral-950 hover:bg-white/10 text-neutral-300 whitespace-nowrap transition-colors"
           >
             💰 Draft Financial Model
           </button>
         </div>
 
         {/* Input Bar Form */}
-        <form onSubmit={handleSend} className="p-4 border-t border-white/10 bg-slate-950/90 flex items-center gap-3">
+        <form onSubmit={handleSend} className="p-4 border-t border-white/10 bg-black flex items-center gap-3">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder={`Ask ${selectedAgent.name} (${selectedAgent.title})...`}
-            className="flex-1 px-4 py-3 rounded-xl glass-input text-xs text-white placeholder-slate-500 focus:outline-none"
+            className="flex-1 px-4 py-3 rounded-full glass-input text-xs text-white placeholder-neutral-500 focus:outline-none"
           />
-          <GlowingButton type="submit" loading={isThinking} icon={<Send className="w-4 h-4" />}>
-            Send Directive
+          <GlowingButton type="submit" loading={isThinking} icon={<Send className="w-3.5 h-3.5" />}>
+            Send
           </GlowingButton>
         </form>
       </div>

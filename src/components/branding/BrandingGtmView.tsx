@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowingButton } from "@/components/ui/GlowingButton";
-import { Palette, Sparkles, Copy, Check, ExternalLink, RefreshCw, Send } from "lucide-react";
+import { Palette } from "lucide-react";
 
 export function BrandingGtmView() {
   const { founderProfile } = useApp();
@@ -18,9 +17,9 @@ export function BrandingGtmView() {
   ];
 
   const COLOR_PALETTES = [
-    { name: "Obsidian AI", primary: "#6366f1", secondary: "#8b5cf6", dark: "#07080c", accent: "#06b6d4" },
-    { name: "Neon Founder", primary: "#3b82f6", secondary: "#10b981", dark: "#090d16", accent: "#f59e0b" },
-    { name: "Cyber Venture", primary: "#ec4899", secondary: "#8b5cf6", dark: "#0b0813", accent: "#38bdf8" }
+    { name: "Monochrome Luxury", primary: "#ffffff", secondary: "#171717", dark: "#000000", accent: "#737373" },
+    { name: "Obsidian Slate", primary: "#e5e5e5", secondary: "#262626", dark: "#0a0a0a", accent: "#a3a3a3" },
+    { name: "Cyber Pure White", primary: "#ffffff", secondary: "#404040", dark: "#050505", accent: "#d4d4d4" }
   ];
 
   const handleCopy = (text: string, id: string) => {
@@ -31,14 +30,14 @@ export function BrandingGtmView() {
 
   return (
     <div className="space-y-8 pb-12 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
         <div>
-          <div className="flex items-center space-x-2 text-xs text-indigo-400 font-mono mb-1">
-            <Palette className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-[10px] text-neutral-400 font-mono mb-1">
+            <Palette className="w-3.5 h-3.5 text-white" />
             <span>BRAND IDENTITY & GTM MARKETING HUB</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">Branding & Launch Strategy</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-neutral-400 mt-1">
             Brand narratives, domain availability, visual design systems, and outbound sales copy.
           </p>
         </div>
@@ -51,14 +50,14 @@ export function BrandingGtmView() {
           {BRAND_NAMES.map((item, idx) => (
             <GlassCard key={idx} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-base font-bold text-white">{item.name}</span>
-                <span className={`px-2 py-0.5 text-[9px] font-bold rounded ${
-                  item.status === "Available" ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+                <span className="text-sm font-bold text-white">{item.name}</span>
+                <span className={`px-2 py-0.5 text-[9px] font-mono font-bold rounded ${
+                  item.status === "Available" ? "bg-white text-black" : "bg-neutral-800 text-neutral-400"
                 }`}>
                   {item.status}
                 </span>
               </div>
-              <p className="text-xs font-mono text-indigo-300">{item.domain}</p>
+              <p className="text-xs font-mono text-neutral-400">{item.domain}</p>
             </GlassCard>
           ))}
         </div>
@@ -88,12 +87,12 @@ export function BrandingGtmView() {
           <h3 className="text-sm font-bold text-white">Day 1 Cold Email Lead Generation Script</h3>
           <button
             onClick={() => handleCopy("Subject: Quick question about startup legal & pitch decks...", "script")}
-            className="text-xs text-indigo-400 hover:text-indigo-300 font-mono"
+            className="text-xs text-neutral-400 hover:text-white font-mono"
           >
             {copied === "script" ? "Copied!" : "Copy Script"}
           </button>
         </div>
-        <div className="p-4 rounded-xl bg-slate-950/80 font-mono text-xs text-slate-300 leading-relaxed">
+        <div className="p-4 rounded-xl bg-black font-mono text-xs text-neutral-300 leading-relaxed">
           Subject: Quick question about startup legal & pitch decks...<br /><br />
           Hey [Founder First Name],<br /><br />
           Noticed you're building in the {founderProfile.industry} space. Most first-time founders waste $5k+ on standard incorporation forms or pitch deck reviews.<br /><br />

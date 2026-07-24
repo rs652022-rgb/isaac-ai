@@ -5,7 +5,7 @@ import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { FounderProfile } from "@/types";
-import { Sparkles, Send, CheckCircle2, ArrowRight, Bot, User, RefreshCw } from "lucide-react";
+import { Sparkles, ArrowRight, Bot } from "lucide-react";
 
 interface StepQuestion {
   id: keyof FounderProfile;
@@ -94,41 +94,41 @@ export function ConversationalOnboarding() {
   const currentQ = QUESTIONS[currentStep];
 
   return (
-    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-4 bg-black">
       <div className="w-full max-w-2xl space-y-6">
         {/* Onboarding Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-xs font-semibold text-indigo-400">
-            <Sparkles className="w-4 h-4" />
-            <span>AI Founder Memory Synchronization</span>
+          <div className="flex items-center space-x-2 text-xs font-mono text-neutral-400">
+            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <span>AI FOUNDER MEMORY SYNC</span>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-neutral-500 font-mono">
             Step {currentStep + 1} of {QUESTIONS.length}
           </span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
+        <div className="w-full h-1 rounded-full bg-neutral-900 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-all duration-300"
+            className="h-full bg-white transition-all duration-300"
             style={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}
           />
         </div>
 
         {/* Conversational AI Card */}
-        <GlassCard glow="indigo" className="p-6 sm:p-8 space-y-6">
+        <GlassCard className="p-6 sm:p-8 space-y-6 border-white/10 bg-[#080808]">
           <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-lg">
-              <Bot className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-white text-black flex items-center justify-center font-bold text-sm shrink-0">
+              <Bot className="w-4 h-4" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold text-indigo-300">{currentQ.agentName}</span>
-                <span className="px-2 py-0.5 text-[9px] rounded bg-indigo-500/20 text-indigo-400 font-mono">
+                <span className="text-xs font-semibold text-white">{currentQ.agentName}</span>
+                <span className="px-2 py-0.5 text-[9px] rounded bg-white/10 text-neutral-300 font-mono">
                   Online
                 </span>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white leading-relaxed">
+              <h3 className="text-lg sm:text-xl font-extrabold text-white leading-relaxed">
                 {currentQ.question}
               </h3>
             </div>
@@ -141,7 +141,7 @@ export function ConversationalOnboarding() {
               value={currentInput || (answers[currentQ.id] as string) || ""}
               onChange={(e) => setCurrentInput(e.target.value)}
               placeholder={currentQ.placeholder}
-              className="w-full p-4 rounded-xl glass-input text-sm text-white placeholder-slate-500 focus:outline-none resize-none"
+              className="w-full p-4 rounded-xl glass-input text-xs text-white placeholder-neutral-500 focus:outline-none resize-none"
             />
 
             <div className="flex items-center justify-between">
@@ -149,7 +149,7 @@ export function ConversationalOnboarding() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep((prev) => prev - 1)}
-                  className="text-xs text-slate-400 hover:text-white"
+                  className="text-xs text-neutral-400 hover:text-white"
                 >
                   ← Back
                 </button>
@@ -167,11 +167,11 @@ export function ConversationalOnboarding() {
         </GlassCard>
 
         {/* Summary of Saved Memory */}
-        <div className="p-4 rounded-xl border border-white/5 bg-slate-950/40 text-xs text-slate-400 space-y-1">
-          <p className="font-mono text-slate-500 text-[10px] uppercase">Active Persistent Memory Buffer:</p>
-          <p><strong className="text-slate-300">Startup Name:</strong> {answers.startupName}</p>
-          <p><strong className="text-slate-300">Industry:</strong> {answers.industry}</p>
-          <p><strong className="text-slate-300">Region:</strong> {answers.country}</p>
+        <div className="p-4 rounded-xl border border-white/5 bg-neutral-950 text-xs text-neutral-400 space-y-1">
+          <p className="font-mono text-neutral-500 text-[10px] uppercase">Active Memory Buffer:</p>
+          <p><strong className="text-white">Startup Name:</strong> {answers.startupName}</p>
+          <p><strong className="text-white">Industry:</strong> {answers.industry}</p>
+          <p><strong className="text-white">Region:</strong> {answers.country}</p>
         </div>
       </div>
     </div>
