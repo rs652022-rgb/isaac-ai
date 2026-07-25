@@ -22,8 +22,8 @@ import {
   ZapOff
 } from "lucide-react";
 
-// Client-only dynamic import of Iridescence WebGL background shader
-const Iridescence = dynamic(() => import("@/components/background/Iridescence"), {
+// Client-only dynamic import of DarkVeil WebGL background shader
+const DarkVeil = dynamic(() => import("@/components/background/DarkVeil"), {
   ssr: false
 });
 
@@ -56,13 +56,18 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
-      {/* Iridescence WebGL Background Shader */}
-      <Iridescence
-        color={[0.2, 0.5, 1.0]}
-        mouseReact={true}
-        amplitude={0.1}
-        speed={1.0}
-      />
+      {/* DarkVeil WebGL Background Shader */}
+      <div className="fixed inset-0 pointer-events-none -z-20">
+        <DarkVeil
+          hueShift={220}
+          noiseIntensity={0.05}
+          scanlineIntensity={0.1}
+          speed={0.3}
+          scanlineFrequency={150}
+          warpAmount={0.2}
+          resolutionScale={1.0}
+        />
+      </div>
 
       {/* Dark Gradient Overlay for Maximum Visual Depth */}
       <div 
