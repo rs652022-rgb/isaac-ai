@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 
 export function AuthModal() {
   const router = useRouter();
+  const { founderProfile } = useApp();
   const [selectedRole, setSelectedRole] = useState<Role>("Founder");
   const [email, setEmail] = useState("alex@isaacai.io");
   const [password, setPassword] = useState("••••••••••••");
@@ -34,7 +35,11 @@ export function AuthModal() {
         console.error("Auth error:", res.error);
         // Could show toast here
       } else {
-        router.push("/onboarding");
+        if (!founderProfile.startupName) {
+          router.push("/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -44,7 +49,7 @@ export function AuthModal() {
   };
 
   const handleOAuth = (provider: "google" | "github") => {
-    signIn(provider, { callbackUrl: "/" });
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
