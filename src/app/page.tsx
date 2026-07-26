@@ -32,6 +32,17 @@ function MainAppShell() {
     }
   }, [status, activeTab, setActiveTab]);
 
+  if (status === "loading" && activeTab !== "landing") {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-10 h-10 rounded-2xl bg-white/10 mb-4 flex items-center justify-center font-extrabold text-xs">IS</div>
+          <div className="text-[10px] font-mono text-neutral-500 tracking-widest">INITIALIZING OS...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (activeTab === "landing") {
     return <LandingPage />;
   }

@@ -3,21 +3,10 @@ import type { NextAuthConfig } from "next-auth";
 export const authConfig = {
   providers: [], // Overridden in auth.ts
   pages: {
-    signIn: "/login",
+    signIn: "/",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      
-      const protectedPaths = ["/dashboard", "/chat", "/documents", "/settings", "/profile", "/billing", "/founder-workspace"];
-      const isProtected = protectedPaths.some((path) => nextUrl.pathname.startsWith(path));
-
-      if (isProtected) {
-        if (isLoggedIn) return true;
-        return false; // Redirect to signIn page
-      } else if (isLoggedIn && nextUrl.pathname === "/login") {
-        return Response.redirect(new URL("/dashboard", nextUrl));
-      }
       return true;
     },
     async session({ session, token }) {

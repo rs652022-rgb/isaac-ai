@@ -42,7 +42,7 @@ export function AuthModal() {
   };
 
   const handleOAuth = (provider: "google" | "github") => {
-    signIn(provider, { callbackUrl: "/dashboard" });
+    signIn(provider, { callbackUrl: "/" });
   };
 
   return (
