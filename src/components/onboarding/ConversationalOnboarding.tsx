@@ -6,8 +6,11 @@ import { GlowingButton } from "@/components/ui/GlowingButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Send, Cpu, ArrowRight, Brain, ChevronUp, ChevronDown, Paperclip, Mic, Lightbulb, TrendingUp, Target, LineChart, Search, CircleDollarSign } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 export function ConversationalOnboarding() {
-  const { messages, sendMessage, isThinking, setActiveTab } = useApp();
+  const { messages, sendMessage, isThinking } = useApp();
+  const router = useRouter();
   const [hasStarted, setHasStarted] = useState(false);
   
   const [inputText, setInputText] = useState("");
@@ -37,7 +40,7 @@ export function ConversationalOnboarding() {
 
   // The final step triggers Dashboard view. The "action" field from the agent message handles this.
   const handleGoToDashboard = () => {
-    setActiveTab("dashboard");
+    router.push("/dashboard");
   };
 
   if (!hasStarted) {

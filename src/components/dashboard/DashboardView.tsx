@@ -20,8 +20,11 @@ import {
   ChevronRight
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 export function DashboardView() {
-  const { founderProfile, scores, roadmapTasks, toggleTaskStatus, setActiveTab, setSelectedAgent } = useApp();
+  const { founderProfile, scores, roadmapTasks, toggleTaskStatus, setSelectedAgent } = useApp();
+  const router = useRouter();
 
   const activeMilestones = roadmapTasks.slice(0, 4);
 
@@ -48,13 +51,13 @@ export function DashboardView() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setActiveTab("validation")}
+            onClick={() => router.push("/validation")}
             className="px-4 py-2 rounded-full border border-white/10 bg-neutral-950 text-xs font-medium text-neutral-200 hover:bg-neutral-900 transition-colors"
           >
             Re-Validation Audit
           </button>
           <GlowingButton
-            onClick={() => setActiveTab("chat")}
+            onClick={() => router.push("/chat")}
             icon={<Cpu className="w-4 h-4" />}
           >
             Launch AI Workspace
@@ -130,7 +133,7 @@ export function DashboardView() {
               Priority Action Roadmap
             </h2>
             <button
-              onClick={() => setActiveTab("roadmap")}
+              onClick={() => router.push("/roadmap")}
               className="text-xs text-neutral-400 hover:text-white font-medium flex items-center gap-1 transition-colors"
             >
               View Full 24-Month Timeline <ChevronRight className="w-3.5 h-3.5" />
@@ -181,7 +184,7 @@ export function DashboardView() {
               Active C-Suite Agents
             </h2>
             <button
-              onClick={() => setActiveTab("chat")}
+              onClick={() => router.push("/chat")}
               className="text-xs text-neutral-400 hover:text-white font-medium"
             >
               Open Mesh
@@ -192,7 +195,7 @@ export function DashboardView() {
             {AI_AGENTS.slice(0, 5).map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => { setSelectedAgent(agent); setActiveTab("chat"); }}
+                onClick={() => { setSelectedAgent(agent); router.push("/chat"); }}
                 className="flex items-center justify-between cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-all"
               >
                 <div className="flex items-center space-x-3">
@@ -218,7 +221,7 @@ export function DashboardView() {
       <div className="pt-4 border-t border-white/[0.08]">
         <h2 className="text-sm font-bold text-white mb-4">Founder Execution Hub</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <GlassCard onClick={() => setActiveTab("registration")} className="p-5 cursor-pointer group">
+          <GlassCard onClick={() => router.push("/registration")} className="p-5 cursor-pointer group">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
                 <ShieldCheck className="w-4 h-4" />
@@ -229,7 +232,7 @@ export function DashboardView() {
             <p className="text-[11px] text-neutral-400 mt-1">Delaware C-Corp vs India Pvt Ltd legal guide.</p>
           </GlassCard>
 
-          <GlassCard onClick={() => setActiveTab("documents")} className="p-5 cursor-pointer group">
+          <GlassCard onClick={() => router.push("/documents")} className="p-5 cursor-pointer group">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
                 <FileText className="w-4 h-4" />
@@ -240,7 +243,7 @@ export function DashboardView() {
             <p className="text-[11px] text-neutral-400 mt-1">Pitch Decks, PRDs, NDAs & Financial Models.</p>
           </GlassCard>
 
-          <GlassCard onClick={() => setActiveTab("product-builder")} className="p-5 cursor-pointer group">
+          <GlassCard onClick={() => router.push("/product-builder")} className="p-5 cursor-pointer group">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
                 <Layers className="w-4 h-4" />
@@ -251,7 +254,7 @@ export function DashboardView() {
             <p className="text-[11px] text-neutral-400 mt-1">DB schema, Next.js architecture, & sprint tasks.</p>
           </GlassCard>
 
-          <GlassCard onClick={() => setActiveTab("funding")} className="p-5 cursor-pointer group">
+          <GlassCard onClick={() => router.push("/funding")} className="p-5 cursor-pointer group">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
                 <TrendingUp className="w-4 h-4" />

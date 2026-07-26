@@ -1,14 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { RadialProgress } from "@/components/ui/RadialProgress";
 import { Briefcase, Flame } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function FundingCoachView() {
-  const { setActiveTab } = useApp();
+  const router = useRouter();
+  const [messages, setMessages] = useState<any[]>([]);
 
   const VC_DIRECTORY = [
     { name: "Y Combinator", checkSize: "$500k", stage: "Pre-Seed / Seed", focus: "AI & SaaS", fitScore: 96 },
@@ -38,7 +40,7 @@ export function FundingCoachView() {
         </div>
 
         <GlowingButton
-          onClick={() => setActiveTab("chat")}
+          onClick={() => router.push("/chat")}
           icon={<Flame className="w-4 h-4 text-white" />}
         >
           Simulate VC Pitch Grilling
@@ -91,7 +93,7 @@ export function FundingCoachView() {
                 <p className="text-[11px] text-neutral-400 mt-1 font-mono">Check Size: {vc.checkSize} • Stage: {vc.stage}</p>
               </div>
               <button
-                onClick={() => setActiveTab("chat")}
+                onClick={() => router.push("/chat")}
                 className="px-3 py-1.5 rounded-full border border-white/10 bg-black text-xs text-neutral-300 hover:text-white"
               >
                 Grill Deck

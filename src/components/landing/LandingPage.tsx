@@ -27,8 +27,10 @@ const DarkVeil = dynamic(() => import("@/components/background/DarkVeil"), {
   ssr: false
 });
 
+import { useRouter } from "next/navigation";
+
 export function LandingPage() {
-  const { setActiveTab } = useApp();
+  const router = useRouter();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const faqs = [
@@ -81,7 +83,7 @@ export function LandingPage() {
       {/* 1. Floating Glass Navbar */}
       <header className="sticky top-4 z-50 px-4 sm:px-6 max-w-7xl mx-auto">
         <nav className="flex items-center justify-between px-6 py-3.5 rounded-full border border-white/10 bg-black/60 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab("landing")}>
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => router.push("/")}>
             <div className="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-xs shadow-[0_0_15px_rgba(255,255,255,0.3)]">
               IS
             </div>
@@ -99,13 +101,13 @@ export function LandingPage() {
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setActiveTab("auth")}
+              onClick={() => router.push("/login")}
               className="text-xs font-medium text-neutral-400 hover:text-white transition-colors px-3 py-1.5"
             >
               Sign In
             </button>
             <GlowingButton
-              onClick={() => setActiveTab("onboarding")}
+              onClick={() => router.push("/onboarding")}
               size="sm"
               icon={<ArrowRight className="w-3.5 h-3.5" />}
             >
@@ -140,14 +142,14 @@ export function LandingPage() {
         {/* Action CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <GlowingButton
-            onClick={() => setActiveTab("auth")}
+            onClick={() => router.push("/login")}
             size="lg"
             icon={<ArrowRight className="w-4 h-4" />}
           >
             Get Started Free
           </GlowingButton>
           <button
-            onClick={() => setActiveTab("auth")}
+            onClick={() => router.push("/login")}
             className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
           >
             Sign In
@@ -284,7 +286,7 @@ export function LandingPage() {
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> 3 AI Agent Conversations/day</li>
               </ul>
             </div>
-            <GlowingButton onClick={() => setActiveTab("onboarding")} variant="secondary" className="w-full">Get Started Free</GlowingButton>
+            <GlowingButton onClick={() => router.push("/onboarding")} variant="secondary" className="w-full">Get Started Free</GlowingButton>
           </GlassCard>
 
           <GlassCard className="p-8 space-y-6 flex flex-col justify-between border-emerald-500/30 bg-emerald-950/10 relative">
@@ -299,7 +301,7 @@ export function LandingPage() {
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> Interactive Action Roadmap (7 to 90 Days)</li>
               </ul>
             </div>
-            <GlowingButton onClick={() => setActiveTab("billing")} variant="primary" className="w-full">Start Pro Trial</GlowingButton>
+            <GlowingButton onClick={() => router.push("/billing")} variant="primary" className="w-full">Start Pro Trial</GlowingButton>
           </GlassCard>
 
           <GlassCard className="p-8 space-y-6 flex flex-col justify-between">
@@ -312,7 +314,7 @@ export function LandingPage() {
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> VC Matching & Pitch Deck Griller</li>
               </ul>
             </div>
-            <GlowingButton onClick={() => setActiveTab("billing")} variant="secondary" className="w-full">Contact Enterprise</GlowingButton>
+            <GlowingButton onClick={() => router.push("/billing")} variant="secondary" className="w-full">Contact Enterprise</GlowingButton>
           </GlassCard>
         </div>
       </section>

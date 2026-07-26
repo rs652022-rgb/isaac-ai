@@ -5,8 +5,11 @@ import { useApp } from "@/lib/store/app-context";
 import { Cpu, Search, Bell, ChevronDown, Shield, CheckCircle2, User as UserIcon, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
+import { useRouter } from "next/navigation";
+
 export function Navbar() {
-  const { user, founderProfile, setActiveTab } = useApp();
+  const { user, founderProfile } = useApp();
+  const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
@@ -15,7 +18,7 @@ export function Navbar() {
         {/* Left: Brand & Startup Context */}
         <div className="flex items-center space-x-6">
           <div
-            onClick={() => setActiveTab("landing")}
+            onClick={() => router.push("/")}
             className="flex items-center space-x-3 cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-xs tracking-tighter shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-105 transition-transform">
@@ -105,14 +108,14 @@ export function Navbar() {
                   <p className="text-neutral-500 text-[11px] truncate">{user?.email}</p>
                 </div>
                 <button
-                  onClick={() => { setActiveTab("onboarding"); setShowUserMenu(false); }}
+                  onClick={() => { router.push("/onboarding"); setShowUserMenu(false); }}
                   className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5"
                 >
                   <UserIcon className="w-3.5 h-3.5 text-neutral-400" />
                   <span>Founder Memory</span>
                 </button>
                 <button
-                  onClick={() => { setActiveTab("billing"); setShowUserMenu(false); }}
+                  onClick={() => { router.push("/billing"); setShowUserMenu(false); }}
                   className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />

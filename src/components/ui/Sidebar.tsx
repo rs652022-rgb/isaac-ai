@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useApp } from "@/lib/store/app-context";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 
 export function Sidebar() {
-  const { activeTab, setActiveTab } = useApp();
+  const pathname = usePathname();
 
   const NAV_ITEMS = [
     { id: "dashboard", label: "OS Dashboard", icon: LayoutDashboard, category: "Core" },
@@ -47,11 +48,11 @@ export function Sidebar() {
               </h3>
               {items.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = pathname === '/' + item.id;
                 return (
-                  <button
+                  <Link
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    href={`/${item.id}`}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all group ${
                       isActive
                         ? "bg-white text-black font-semibold shadow-[0_0_15px_rgba(255,255,255,0.15)]"
@@ -73,7 +74,7 @@ export function Sidebar() {
                         {item.badge}
                       </span>
                     )}
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -90,12 +91,12 @@ export function Sidebar() {
         <p className="text-[11px] text-neutral-400 mb-3 leading-relaxed">
           Ask Devil&apos;s Advocate Agent to stress test your business model.
         </p>
-        <button
-          onClick={() => setActiveTab("chat")}
-          className="w-full py-2 px-3 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-semibold transition-all text-center"
+        <Link
+          href="/chat"
+          className="block w-full py-2 px-3 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-semibold transition-all text-center"
         >
           Ask Isaac Now
-        </button>
+        </Link>
       </div>
     </aside>
   );

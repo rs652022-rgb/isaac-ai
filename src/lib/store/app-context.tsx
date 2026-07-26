@@ -21,8 +21,6 @@ interface AppContextType {
   documents: GeneratedDocument[];
   addDocument: (doc: GeneratedDocument) => void;
   isThinking: boolean;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
 }
 
 const EMPTY_PROFILE: FounderProfile = {
@@ -79,7 +77,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [roadmapTasks, setRoadmapTasks] = useState<RoadmapTask[]>(INITIAL_ROADMAP);
   const [documents, setDocuments] = useState<GeneratedDocument[]>(INITIAL_DOCUMENTS);
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("landing");
 
   const [messages, setMessages] = useState<AgentMessage[]>([
     {
@@ -132,8 +129,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       let reasoning: string[] = [];
       let action: "login" | undefined;
       
-      // Onboarding conversational flow (if on onboarding tab)
-      if (activeTab === "onboarding") {
+      // Onboarding conversational flow (if on onboarding route)
+      if (typeof window !== "undefined" && window.location.pathname === "/onboarding") {
         const userMsgCount = messages.filter(m => m.sender === "user").length + 1;
         
         if (userMsgCount === 1) {
@@ -156,6 +153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } else {
           replyContent = "Ready to proceed to your dashboard.";
           action = "login";
+          if (typeof window !== "undefined") window.location.href = "/dashboard";
         }
       } else {
         // Dashboard / Logged-in experience
@@ -208,9 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         toggleTaskStatus,
         documents,
         addDocument,
-        isThinking,
-        activeTab,
-        setActiveTab
+        isThinking
       }}
     >
       {children}

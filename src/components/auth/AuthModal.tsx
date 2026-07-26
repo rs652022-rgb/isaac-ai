@@ -9,8 +9,10 @@ import { Mail, Key, ArrowRight, Code } from "lucide-react";
 
 import { signIn } from "next-auth/react";
 
+import { useRouter } from "next/navigation";
+
 export function AuthModal() {
-  const { setActiveTab } = useApp();
+  const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<Role>("Founder");
   const [email, setEmail] = useState("alex@isaacai.io");
   const [password, setPassword] = useState("••••••••••••");
@@ -32,7 +34,7 @@ export function AuthModal() {
         console.error("Auth error:", res.error);
         // Could show toast here
       } else {
-        setActiveTab("onboarding");
+        router.push("/onboarding");
       }
     } catch (error) {
       console.error(error);

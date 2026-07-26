@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { Search, X, Cpu, FileText, Zap, Shield, Rocket, DollarSign, Code, Users } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { setActiveTab } = useApp();
+  const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,15 +28,15 @@ export function CommandPalette() {
   if (!isOpen) return null;
 
   const COMMANDS = [
-    { id: "dashboard", label: "Open Founder OS Dashboard", category: "Navigation", icon: Zap, action: () => { setActiveTab("dashboard"); setIsOpen(false); } },
-    { id: "chat", label: "Launch AI Workspace & Multi-Agent Chat", category: "Navigation", icon: Cpu, action: () => { setActiveTab("chat"); setIsOpen(false); } },
-    { id: "validation", label: "Run Startup Idea & Risk Validation", category: "Navigation", icon: Shield, action: () => { setActiveTab("validation"); setIsOpen(false); } },
-    { id: "roadmap", label: "View Interactive Action Roadmap", category: "Navigation", icon: Rocket, action: () => { setActiveTab("roadmap"); setIsOpen(false); } },
-    { id: "registration", label: "Open Multi-Country Registration Assistant", category: "Navigation", icon: FileText, action: () => { setActiveTab("registration"); setIsOpen(false); } },
-    { id: "documents", label: "Open AI Document Studio", category: "Navigation", icon: FileText, action: () => { setActiveTab("documents"); setIsOpen(false); } },
-    { id: "product-builder", label: "Open Tech Stack & Schema Builder", category: "Navigation", icon: Code, action: () => { setActiveTab("product-builder"); setIsOpen(false); } },
-    { id: "funding", label: "Open Pitch Coach & Investor Directory", category: "Navigation", icon: DollarSign, action: () => { setActiveTab("funding"); setIsOpen(false); } },
-    { id: "admin", label: "Open System Admin Panel", category: "Navigation", icon: Users, action: () => { setActiveTab("admin"); setIsOpen(false); } }
+    { id: "dashboard", label: "Open Founder OS Dashboard", category: "Navigation", icon: Zap, action: () => { router.push("/dashboard"); setIsOpen(false); } },
+    { id: "chat", label: "Launch AI Workspace & Multi-Agent Chat", category: "Navigation", icon: Cpu, action: () => { router.push("/chat"); setIsOpen(false); } },
+    { id: "validation", label: "Run Startup Idea & Risk Validation", category: "Navigation", icon: Shield, action: () => { router.push("/validation"); setIsOpen(false); } },
+    { id: "roadmap", label: "View Interactive Action Roadmap", category: "Navigation", icon: Rocket, action: () => { router.push("/roadmap"); setIsOpen(false); } },
+    { id: "registration", label: "Open Multi-Country Registration Assistant", category: "Navigation", icon: FileText, action: () => { router.push("/registration"); setIsOpen(false); } },
+    { id: "documents", label: "Open AI Document Studio", category: "Navigation", icon: FileText, action: () => { router.push("/documents"); setIsOpen(false); } },
+    { id: "product-builder", label: "Open Tech Stack & Schema Builder", category: "Navigation", icon: Code, action: () => { router.push("/product-builder"); setIsOpen(false); } },
+    { id: "funding", label: "Open Pitch Coach & Investor Directory", category: "Navigation", icon: DollarSign, action: () => { router.push("/funding"); setIsOpen(false); } },
+    { id: "admin", label: "Open System Admin Panel", category: "Navigation", icon: Users, action: () => { router.push("/admin"); setIsOpen(false); } }
   ];
 
   const filteredCommands = COMMANDS.filter((cmd) =>
