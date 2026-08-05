@@ -5,10 +5,8 @@ import { useApp } from "@/lib/store/app-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { Role } from "@/types";
-import { Mail, Key, ArrowRight, Code } from "lucide-react";
-
+import { Mail, Key, ArrowRight, Code, AlertCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
-
 import { useRouter } from "next/navigation";
 
 export function AuthModal() {
@@ -18,10 +16,12 @@ export function AuthModal() {
   const [email, setEmail] = useState("alex@isaacai.io");
   const [password, setPassword] = useState("••••••••••••");
   const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setAuthError(null);
     
     try {
       const res = await signIn("credentials", {
@@ -33,7 +33,7 @@ export function AuthModal() {
       
       if (res?.error) {
         console.error("Auth error:", res.error);
-        // Could show toast here
+        setAuthError("Authentication failed. Please check your credentials.");
       } else {
         if (!founderProfile.startupName) {
           router.push("/onboarding");
@@ -43,6 +43,7 @@ export function AuthModal() {
       }
     } catch (error) {
       console.error(error);
+      setAuthError("An unexpected error occurred during authentication.");
     } finally {
       setLoading(false);
     }
@@ -65,6 +66,14 @@ export function AuthModal() {
           <h2 className="text-2xl font-bold text-white tracking-tight">Welcome to ISAAC.AI</h2>
           <p className="text-xs text-neutral-400 font-serif-accent italic">The AI Founder Operating System</p>
         </div>
+
+        {/* Error Alert */}
+        {authError && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+            <span>{authError}</span>
+          </div>
+        )}
 
         {/* Role Selector */}
         <div className="space-y-2">
