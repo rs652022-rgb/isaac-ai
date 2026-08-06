@@ -47,11 +47,7 @@ export function LandingPage() {
   const [isAIOnboardingOpen, setIsAIOnboardingOpen] = useState(false);
 
   const handleLaunchOS = () => {
-    if (isOnboardingCompleted || (founderProfile.startupName && founderProfile.startupName !== "Isaac AI Inc." && founderProfile.problem)) {
-      router.push("/dashboard");
-    } else {
-      setIsAIOnboardingOpen(true);
-    }
+    setIsAIOnboardingOpen(true);
   };
 
   const faqs = [
