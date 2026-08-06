@@ -1,269 +1,184 @@
 "use client";
 
 import React from "react";
-import { useApp } from "@/lib/store/app-context";
+import { useFounderGraph } from "@/lib/graph/graph-memory";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlowingButton } from "@/components/ui/GlowingButton";
 import { RadialProgress } from "@/components/ui/RadialProgress";
-import { AI_AGENTS } from "@/lib/agents/agent-registry";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
-  Rocket,
-  Cpu,
-  ArrowUpRight,
-  ShieldCheck,
+  Target,
+  Wrench,
+  FileCheck,
+  Building2,
+  Users,
+  LineChart,
+  ArrowRight,
   TrendingUp,
-  Flame,
+  ShieldCheck,
+  Zap,
   CheckCircle2,
-  FileText,
-  Layers,
-  ChevronRight
+  AlertTriangle
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
-
 export function DashboardView() {
-  const { founderProfile, scores, roadmapTasks, toggleTaskStatus, setSelectedAgent } = useApp();
+  const { nodes, metrics, ideaData, notifications } = useFounderGraph();
   const router = useRouter();
 
-  const activeMilestones = roadmapTasks.slice(0, 4);
+  const stageIcons: Record<string, React.ElementType> = {
+    "idea-validation": Target,
+    resources: Wrench,
+    documents: FileCheck,
+    grants: Building2,
+    investors: Users,
+    performance: LineChart,
+  };
+
+  const healthScore = Math.round(
+    (ideaData.ideaScore + ideaData.executionScore + metrics.profitMargin) / 3
+  );
 
   return (
     <div className="space-y-8 pb-12 animate-in fade-in duration-300">
-      {/* Top Welcome Header */}
+      {/* 1. Top Welcome Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
         <div>
           <div className="flex items-center space-x-2 text-[10px] text-neutral-400 font-mono mb-1">
             <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>ISAAC.AI OS :: ACTIVE SYSTEM CONTEXT</span>
+            <span>AI FOUNDER OPERATING SYSTEM :: CENTRAL CONTROL ROOM</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {founderProfile.startupName || "Your Startup"}
+            {metrics.businessName}
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
-            {founderProfile.tagline ? `"${founderProfile.tagline}" • ` : ""}
-            <span className="font-serif-accent italic text-neutral-300">
-              {founderProfile.industry || "Industry Analysis Pending"}
-            </span>
-            {founderProfile.fundingStage ? ` • ${founderProfile.fundingStage} Stage` : ""}
+            Industry: <span className="text-white font-medium">{metrics.industry}</span> • 6 Active Execution Stages • Stage Completion: <span className="text-emerald-400 font-mono font-bold">68%</span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/validation")}
+            onClick={() => router.push("/dashboard/performance")}
             className="px-4 py-2 rounded-full border border-white/10 bg-neutral-950 text-xs font-medium text-neutral-200 hover:bg-neutral-900 transition-colors"
           >
-            Re-Validation Audit
+            Metrics BI Dashboard
           </button>
           <GlowingButton
-            onClick={() => router.push("/chat")}
-            icon={<Cpu className="w-4 h-4" />}
+            onClick={() => router.push("/dashboard/idea-validation")}
+            icon={<Target className="w-4 h-4" />}
           >
-            Launch AI Workspace
+            Stage 1 Workspace
           </GlowingButton>
         </div>
       </div>
 
-      {/* Main Score & Readiness Gauge Bar */}
+      {/* 2. Four Key Startup Gauges */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <GlassCard className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Startup Score</p>
-            <p className="text-2xl font-extrabold text-white mt-1">{scores.overallScore}/100</p>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Startup Health Score</p>
+            <p className="text-2xl font-extrabold text-white mt-1">{healthScore}/100</p>
             <p className="text-[11px] text-emerald-400 font-mono mt-1">VC Ready Tier</p>
           </div>
-          <RadialProgress score={scores.overallScore} size={65} strokeWidth={6} />
+          <RadialProgress score={healthScore} size={65} strokeWidth={6} />
         </GlassCard>
 
         <GlassCard className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Market Potential</p>
-            <p className="text-2xl font-extrabold text-white mt-1">{scores.marketScore}/100</p>
-            <p className="text-[11px] text-neutral-300 font-mono mt-1">Strong TAM Growth</p>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">ARR Runway Index</p>
+            <p className="text-2xl font-extrabold text-white mt-1">${(metrics.arr / 1000).toFixed(1)}k</p>
+            <p className="text-[11px] text-neutral-300 font-mono mt-1">{metrics.cashRunwayMonths} Months Cash Runway</p>
           </div>
-          <RadialProgress score={scores.marketScore} size={65} strokeWidth={6} />
+          <RadialProgress score={Math.min(100, metrics.cashRunwayMonths * 5.5)} size={65} strokeWidth={6} />
         </GlassCard>
 
         <GlassCard className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Execution Index</p>
-            <p className="text-2xl font-extrabold text-white mt-1">{scores.executionScore}/100</p>
-            <p className="text-[11px] text-emerald-400 font-mono mt-1">MVP 30-Day Sprint</p>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Compliance Index</p>
+            <p className="text-2xl font-extrabold text-white mt-1">82/100</p>
+            <p className="text-[11px] text-emerald-400 font-mono mt-1">Inc. & GST Active</p>
           </div>
-          <RadialProgress score={scores.executionScore} size={65} strokeWidth={6} />
+          <RadialProgress score={82} size={65} strokeWidth={6} />
         </GlassCard>
 
         <GlassCard className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">Safety Index</p>
-            <p className="text-2xl font-extrabold text-white mt-1">{100 - scores.riskScore}/100</p>
-            <p className="text-[11px] text-neutral-300 font-mono mt-1">Low-Medium Risk</p>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">LTV / CAC Ratio</p>
+            <p className="text-2xl font-extrabold text-white mt-1">{(metrics.ltv / metrics.cac).toFixed(1)}x</p>
+            <p className="text-[11px] text-emerald-400 font-mono mt-1">High Scale Efficiency</p>
           </div>
-          <RadialProgress score={100 - scores.riskScore} size={65} strokeWidth={6} />
+          <RadialProgress score={94} size={65} strokeWidth={6} />
         </GlassCard>
       </div>
 
-      {/* Sugarcoat-Free Executive Assessment Banner */}
+      {/* 3. Executive AI Verdict Banner */}
       <GlassCard className="p-6 border-l-2 border-l-white bg-neutral-950">
         <div className="flex items-start space-x-4">
-          <div className="p-2 rounded-xl bg-white text-black shrink-0">
-            <Flame className="w-4 h-4" />
+          <div className="p-2.5 rounded-xl bg-white text-black shrink-0">
+            <Zap className="w-5 h-5" />
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-white">
-                Isaac&apos;s Executive Verdict (No Sugarcoating)
+                ISAAC&apos;S STAGE AUDIT & EXECUTIVE VERDICT
               </span>
             </div>
             <p className="text-xs text-neutral-300 leading-relaxed font-sans">
-              {scores.verdict}
+              &quot;Your B2B SaaS economics are solid with a 17.1x LTV/CAC ratio and $148.8k ARR. Priority focus for Q3: Complete Stage 3 (Delaware Incorporation & Founder Agreement) and submit Stage 4 (Startup India Seed Fund Scheme grant) before scaling marketing spend.&quot;
             </p>
           </div>
         </div>
       </GlassCard>
 
-      {/* Two Column Grid: Milestones & Agent Stream */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Active 90-Day Roadmap Tasks */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <Rocket className="w-4 h-4 text-neutral-400" />
-              Priority Action Roadmap
-            </h2>
-            <button
-              onClick={() => router.push("/roadmap")}
-              className="text-xs text-neutral-400 hover:text-white font-medium flex items-center gap-1 transition-colors"
-            >
-              View Full 24-Month Timeline <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+      {/* 4. The 6 Interactive Founder OS Stages Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-neutral-400" />
+            Founder Execution Pipeline (6 Stages)
+          </h2>
+          <span className="text-xs font-mono text-neutral-400">Connected Graph Memory</span>
+        </div>
 
-          <div className="space-y-3">
-            {activeMilestones.map((task) => (
-              <GlassCard key={task.id} className="p-4 flex items-center justify-between gap-4">
-                <div className="flex items-start space-x-3">
-                  <button
-                    onClick={() => toggleTaskStatus(task.id)}
-                    className={`mt-0.5 p-1 rounded-lg border transition-colors ${
-                      task.status === "Completed"
-                        ? "bg-white border-white text-black"
-                        : "bg-black border-white/20 text-neutral-500 hover:border-white/40"
-                    }`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                  </button>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-xs font-bold ${task.status === "Completed" ? "line-through text-neutral-500" : "text-white"}`}>
-                        {task.title}
-                      </span>
-                      <span className="px-2 py-0.5 text-[9px] font-mono uppercase rounded bg-white/10 text-neutral-300">
-                        {task.timeline}
-                      </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {nodes.filter((n) => n.id !== "overview").map((node) => {
+            const Icon = stageIcons[node.id] || Target;
+            return (
+              <GlassCard
+                key={node.id}
+                onClick={() => router.push(`/dashboard/${node.id}`)}
+                className="p-5 cursor-pointer group hover:border-white/30 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <p className="text-[11px] text-neutral-400 mt-1">{task.description}</p>
+                    <span className="px-2.5 py-0.5 text-[9px] font-mono font-bold rounded-full bg-white/10 text-white">
+                      {node.completionPercentage}% Complete
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-white group-hover:text-neutral-200 transition-colors">
+                      {node.title}
+                    </h3>
+                    <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                      {node.subtitle}
+                    </p>
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <span className="text-[9px] text-neutral-500 block font-mono">Agent</span>
-                  <span className="text-xs text-white font-medium">{task.assignedAgent}</span>
+                <div className="pt-4 mt-4 border-t border-white/10 flex items-center justify-between text-xs text-neutral-400">
+                  <span className="font-mono text-[10px]">Agent: {node.assignedAgent.name}</span>
+                  <div className="flex items-center space-x-1 text-white font-medium group-hover:translate-x-1 transition-transform">
+                    <span>Open Stage</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
                 </div>
               </GlassCard>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Column: Active C-Suite AI Agents */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-neutral-400" />
-              Active C-Suite Agents
-            </h2>
-            <button
-              onClick={() => router.push("/chat")}
-              className="text-xs text-neutral-400 hover:text-white font-medium"
-            >
-              Open Mesh
-            </button>
-          </div>
-
-          <GlassCard className="p-3 space-y-2">
-            {AI_AGENTS.slice(0, 5).map((agent) => (
-              <div
-                key={agent.id}
-                onClick={() => { setSelectedAgent(agent); router.push("/chat"); }}
-                className="flex items-center justify-between cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-all"
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">{agent.avatar}</span>
-                  <div>
-                    <p className="text-xs font-bold text-white group-hover:text-neutral-200 transition-colors">
-                      {agent.name}
-                    </p>
-                    <p className="text-[10px] text-neutral-500 font-mono">{agent.title}</p>
-                  </div>
-                </div>
-
-                <span className="px-2 py-0.5 text-[9px] rounded-full bg-white/10 text-neutral-300 font-mono">
-                  Ready
-                </span>
-              </div>
-            ))}
-          </GlassCard>
-        </div>
-      </div>
-
-      {/* Quick Execution Modules Grid */}
-      <div className="pt-4 border-t border-white/[0.08]">
-        <h2 className="text-sm font-bold text-white mb-4">Founder Execution Hub</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <GlassCard onClick={() => router.push("/registration")} className="p-5 cursor-pointer group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xs font-bold text-white">Incorporation Assistant</h3>
-            <p className="text-[11px] text-neutral-400 mt-1">Delaware C-Corp vs India Pvt Ltd legal guide.</p>
-          </GlassCard>
-
-          <GlassCard onClick={() => router.push("/documents")} className="p-5 cursor-pointer group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                <FileText className="w-4 h-4" />
-              </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xs font-bold text-white">AI Document Studio</h3>
-            <p className="text-[11px] text-neutral-400 mt-1">Pitch Decks, PRDs, NDAs & Financial Models.</p>
-          </GlassCard>
-
-          <GlassCard onClick={() => router.push("/product-builder")} className="p-5 cursor-pointer group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                <Layers className="w-4 h-4" />
-              </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xs font-bold text-white">Product & Tech Stack</h3>
-            <p className="text-[11px] text-neutral-400 mt-1">DB schema, Next.js architecture, & sprint tasks.</p>
-          </GlassCard>
-
-          <GlassCard onClick={() => router.push("/funding")} className="p-5 cursor-pointer group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-xl bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xs font-bold text-white">Funding & VC Griller</h3>
-            <p className="text-[11px] text-neutral-400 mt-1">Audit pitch deck & simulate tough investor Q&A.</p>
-          </GlassCard>
+            );
+          })}
         </div>
       </div>
     </div>
