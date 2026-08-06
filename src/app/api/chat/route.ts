@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { getAgentSystemPrompt } from "@/lib/ai/systemPrompt";
 import { validateOpenRouterKey } from "@/lib/ai/provider";
 import { streamChatCompletion, ChatMessagePayload } from "@/lib/ai/chat";
 import { RequestLogger } from "@/lib/ai/logger";
+import { AgentRouter } from "@/lib/ai/router";
+import { AgentRegistry } from "@/lib/ai/agents/registry";
+import { AgentId } from "@/lib/ai/agents/types";
 
 export async function POST(req: NextRequest) {
   // Extract custom Request ID from header or generate a new unique ID
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
       return {};
     });
 
-    const { content, conversationId: reqConversationId, agentId = "orchestrator" } = body;
+    const { content, conversationId: reqConversationId, agentId: reqAgentId } = body;
 
     if (!content || typeof content !== "string" || !content.trim()) {
       logger.logWarning(1, "Input Validation", "Missing or empty content parameter.");
@@ -36,7 +38,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message content is required.", requestId: logger.requestId }, { status: 400 });
     }
 
-    // 1. User message received
+    // 1. Intent Classifier & Agent Router Dispatch
+    const { agent, classification } = AgentRouter.route(reqAgentId as AgentId, content.trim());
+    const activeAgentId = agent.id;
+    const systemPrompt = AgentRegistry.getSystemPrompt(activeAgentId);
+
+    logger.logStep(
+      1,
+      "Agent Router Dispatch",
+      undefined,
+      `Agent: "${agent.name}" (${activeAgentId}) | Intent Confidence: ${classification?.confidence ?? 1.0}`
+    );
+
+    // 2. User Authentication Lookup
     let session = null;
     try {
       session = await auth();
@@ -70,14 +84,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    logger.logStep(
-      1,
-      "User message received",
-      undefined,
-      `User ID: ${userId} | Message Length: ${content.length} chars`
-    );
-
-    // 2 & 3. Conversation save started & completed
+    // 3. Conversation save started & completed
     let conversationId = reqConversationId || `conv_${Date.now()}`;
     const dbConvStart = Date.now();
     try {
@@ -87,7 +94,7 @@ export async function POST(req: NextRequest) {
           data: {
             id: conversationId,
             userId,
-            agentId,
+            agentId: activeAgentId,
             title: content.substring(0, 40) + "...",
           },
         });
@@ -111,7 +118,7 @@ export async function POST(req: NextRequest) {
           conversationId,
           role: "user",
           content: content.trim(),
-          agentId,
+          agentId: activeAgentId,
         },
       });
       const dbMsgMs = Date.now() - dbMsgStart;
@@ -152,9 +159,7 @@ export async function POST(req: NextRequest) {
       payloadMessages = [{ role: "user", content: content.trim() }];
     }
 
-    // 4 & 5. OpenRouter request started & response received
-    const systemPrompt = getAgentSystemPrompt(agentId);
-
+    // 4 & 5. OpenRouter streaming request execution with active agent system prompt
     const { stream } = await streamChatCompletion({
       messages: payloadMessages,
       systemPrompt,
@@ -186,7 +191,7 @@ export async function POST(req: NextRequest) {
                 conversationId,
                 role: "assistant",
                 content: fullAssistantResponse.trim(),
-                agentId,
+                agentId: activeAgentId,
               },
             });
             const dbSaveMs = Date.now() - dbSaveStart;
@@ -212,13 +217,14 @@ export async function POST(req: NextRequest) {
         "Cache-Control": "no-cache",
         "X-Conversation-Id": conversationId,
         "X-Request-Id": logger.requestId,
+        "X-Agent-Id": activeAgentId,
+        "X-Intent-Confidence": String(classification?.confidence ?? 1.0),
       },
     });
   } catch (error: any) {
     logger.logError(8, "Chat Pipeline Exception", error);
     logger.logSummary(false);
 
-    // Keep user-friendly error message in production, print full error to server console
     return NextResponse.json(
       {
         error: error.message || "An unexpected error occurred in the AI co-founder service layer.",
