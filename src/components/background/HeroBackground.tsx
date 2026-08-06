@@ -24,13 +24,13 @@ export function HeroBackground() {
 
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">
-      {/* 1. Iridescence WebGL Canvas or Static Ambient Fallback */}
+      {/* 1. Iridescence WebGL Canvas */}
       {!prefersReducedMotion ? (
-        <div className="absolute inset-0 w-full h-full opacity-60 mix-blend-screen transition-opacity duration-1000">
+        <div className="absolute inset-0 w-full h-full opacity-75 transition-opacity duration-1000">
           <Iridescence
-            color={[0.4, 0.45, 0.65]}
-            speed={0.4}
-            amplitude={0.08}
+            color={[1, 1, 1]}
+            speed={1.0}
+            amplitude={0.15}
             mouseReact={true}
           />
         </div>
@@ -38,11 +38,8 @@ export function HeroBackground() {
         <div className="absolute inset-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-neutral-950 to-black" />
       )}
 
-      {/* 2. Soft Ambient Vignette Overlay for Contrast Protection */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/55 to-black/95 z-1 pointer-events-none" />
-
-      {/* 3. Radial Glow Center Spotlight */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)] z-1 pointer-events-none" />
+      {/* 2. Delicate Ambient Fade Overlay to preserve high text contrast while letting the Iridescence animation shine through brightly */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black pointer-events-none z-1" />
     </div>
   );
 }
