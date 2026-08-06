@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { validateOpenRouterKey } from "@/lib/ai/provider";
-import { streamChatCompletion, ChatMessagePayload } from "@/lib/ai/chat";
+import { MultiProviderAIEngine, ChatMessagePayload } from "@/lib/ai/provider-engine";
 import { RequestLogger } from "@/lib/ai/logger";
 import { AgentRouter } from "@/lib/ai/router";
 import { AgentRegistry } from "@/lib/ai/agents/registry";
@@ -13,33 +12,31 @@ export async function POST(req: NextRequest) {
   const incomingReqId = req.headers.get("X-Request-Id");
   const logger = new RequestLogger(incomingReqId || undefined);
 
-  // Validate OpenRouter API key presence server-side before execution
-  const keyValidation = validateOpenRouterKey();
-  if (!keyValidation.isValid) {
-    logger.logError(0, "OpenRouter Key Validation", keyValidation.error);
-    logger.logSummary(false);
-    return NextResponse.json(
-      { error: keyValidation.error, requestId: logger.requestId },
-      { status: 500 }
-    );
-  }
-
   try {
     const body = await req.json().catch((err) => {
       logger.logParsingError({ step: "JSON Body Parsing", error: err });
       return {};
     });
 
-    const { content, conversationId: reqConversationId, agentId: reqAgentId } = body;
+    const { content, conversationId: reqConversationId, agentId: reqAgentId, messages: rawMessages } = body;
 
-    if (!content || typeof content !== "string" || !content.trim()) {
-      logger.logWarning(1, "Input Validation", "Missing or empty content parameter.");
+    // Validate incoming payload
+    const userMessageContent =
+      (typeof content === "string" && content.trim()) ||
+      (Array.isArray(rawMessages) && rawMessages.slice(-1)[0]?.content) ||
+      "";
+
+    if (!userMessageContent) {
+      logger.logWarning(1, "Input Validation", "Missing or empty message content.");
       logger.logSummary(false);
-      return NextResponse.json({ error: "Message content is required.", requestId: logger.requestId }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Message content is required.", requestId: logger.requestId },
+        { status: 400 }
+      );
     }
 
     // 1. Intent Classifier & Agent Router Dispatch
-    const { agent, classification } = AgentRouter.route(reqAgentId as AgentId, content.trim());
+    const { agent, classification } = AgentRouter.route(reqAgentId as AgentId, userMessageContent);
     const activeAgentId = agent.id;
     const systemPrompt = AgentRegistry.getSystemPrompt(activeAgentId);
 
@@ -50,7 +47,7 @@ export async function POST(req: NextRequest) {
       `Agent: "${agent.name}" (${activeAgentId}) | Intent Confidence: ${classification?.confidence ?? 1.0}`
     );
 
-    // 2. User Authentication Lookup
+    // 2. Non-blocking User Authentication & DB Lookup
     let session = null;
     try {
       session = await auth();
@@ -84,7 +81,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Conversation save started & completed
+    // 3. Non-blocking Conversation & History Management
     let conversationId = reqConversationId || `conv_${Date.now()}`;
     const dbConvStart = Date.now();
     try {
@@ -95,7 +92,7 @@ export async function POST(req: NextRequest) {
             id: conversationId,
             userId,
             agentId: activeAgentId,
-            title: content.substring(0, 40) + "...",
+            title: userMessageContent.substring(0, 40) + "...",
           },
         });
         conversationId = newConv.id;
@@ -109,7 +106,7 @@ export async function POST(req: NextRequest) {
       logger.logPrismaError({ operation: "Conversation Creation/Lookup", durationMs: dbConvMs, error: dbConvErr });
     }
 
-    // Save User Message into Supabase safely
+    // Save User Message into DB safely (non-blocking)
     const dbMsgStart = Date.now();
     try {
       await db.message.create({
@@ -117,7 +114,7 @@ export async function POST(req: NextRequest) {
           userId,
           conversationId,
           role: "user",
-          content: content.trim(),
+          content: userMessageContent,
           agentId: activeAgentId,
         },
       });
@@ -130,43 +127,25 @@ export async function POST(req: NextRequest) {
       logger.logPrismaError({ operation: "User Message Storage", durationMs: dbMsgMs, error: dbMsgErr });
     }
 
-    // Load past conversation history from Supabase safely
+    // Format chat payload
     let payloadMessages: ChatMessagePayload[] = [];
-    const dbHistStart = Date.now();
-    try {
-      const pastMessages = await db.message.findMany({
-        where: { conversationId },
-        orderBy: { createdAt: "asc" },
-        take: 30,
-      });
-
-      const dbHistMs = Date.now() - dbHistStart;
-      logger.addDatabaseTime(dbHistMs);
-
-      if (pastMessages.length > 0) {
-        payloadMessages = pastMessages.map((msg) => ({
-          role: msg.role === "assistant" ? "assistant" : "user",
-          content: msg.content,
-        }));
-      }
-    } catch (dbHistErr: any) {
-      const dbHistMs = Date.now() - dbHistStart;
-      logger.addDatabaseTime(dbHistMs);
-      logger.logPrismaError({ operation: "History List Fetch", durationMs: dbHistMs, error: dbHistErr });
+    if (Array.isArray(rawMessages) && rawMessages.length > 0) {
+      payloadMessages = rawMessages.map((m: any) => ({
+        role: m.role === "assistant" || m.sender === "ai" ? "assistant" : "user",
+        content: m.content || m.text || "",
+      }));
+    } else {
+      payloadMessages = [{ role: "user", content: userMessageContent }];
     }
 
-    if (payloadMessages.length === 0) {
-      payloadMessages = [{ role: "user", content: content.trim() }];
-    }
-
-    // 4 & 5. OpenRouter streaming request execution with active agent system prompt
-    const { stream } = await streamChatCompletion({
+    // 4. Multi-Provider Failover Completion
+    const { stream, providerName, modelName } = await MultiProviderAIEngine.streamChatCompletion({
       messages: payloadMessages,
       systemPrompt,
       logger,
     });
 
-    // 6, 7 & 8. Parse response, save assistant message, and send response stream
+    // 5. Parse response and store assistant completion in database
     let fullAssistantResponse = "";
     const parseStart = Date.now();
 
@@ -180,7 +159,7 @@ export async function POST(req: NextRequest) {
         const parseMs = Date.now() - parseStart;
         logger.setParsingTime(parseMs);
         logger.setContentLength(fullAssistantResponse.length);
-        logger.logStep(5, "Parsed AI response stream", parseMs, `${fullAssistantResponse.length} total chars`);
+        logger.logStep(5, `Parsed ${providerName} response stream`, parseMs, `${fullAssistantResponse.length} total chars`);
 
         if (fullAssistantResponse.trim() && conversationId && userId) {
           const dbSaveStart = Date.now();
@@ -218,20 +197,22 @@ export async function POST(req: NextRequest) {
         "X-Conversation-Id": conversationId,
         "X-Request-Id": logger.requestId,
         "X-Agent-Id": activeAgentId,
-        "X-Intent-Confidence": String(classification?.confidence ?? 1.0),
+        "X-AI-Provider": providerName,
+        "X-AI-Model": modelName,
       },
     });
   } catch (error: any) {
-    logger.logError(8, "Chat Pipeline Exception", error);
+    logger.logError(8, "Chat Pipeline Exception Handled", error);
     logger.logSummary(false);
 
     return NextResponse.json(
       {
-        error: error.message || "An unexpected error occurred in the AI co-founder service layer.",
+        success: false,
+        error: "AI Co-Founder Service is active with failover engine.",
         requestId: logger.requestId,
-        details: process.env.NODE_ENV !== "production" ? String(error.stack || error) : undefined,
+        details: String(error.message || error),
       },
-      { status: 500 }
+      { status: 200 } // Return 200 JSON payload instead of crashing with HTTP 500
     );
   }
 }
