@@ -152,6 +152,7 @@ export interface GrantScheme {
 export interface InvestorProfile {
   id: string;
   name: string;
+  title?: string;
   type: "Angel Investor" | "VC Fund" | "Accelerator" | "Incubator" | "Pitch Competition";
   checkSize: string;
   targetStages: ("Pre-Seed" | "Seed" | "Series A")[];

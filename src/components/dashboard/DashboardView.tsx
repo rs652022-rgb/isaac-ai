@@ -26,7 +26,7 @@ export function DashboardView() {
   const { nodes, metrics, ideaData, notifications } = useFounderGraph();
   const router = useRouter();
 
-  const stageIcons: Record<string, React.ElementType> = {
+  const stageIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     "idea-validation": Target,
     resources: Wrench,
     documents: FileCheck,
@@ -142,7 +142,7 @@ export function DashboardView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {nodes.filter((n) => n.id !== "overview").map((node) => {
-            const Icon = stageIcons[node.id] || Target;
+            const Icon = stageIcons[node.id as string] || Target;
             return (
               <GlassCard
                 key={node.id}

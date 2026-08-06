@@ -67,7 +67,7 @@ export function InvestorsHubView() {
                   <span className="px-2 py-0.5 text-[9px] font-mono font-bold rounded bg-cyan-400/20 text-cyan-300 border border-cyan-400/30">
                     {inv.type}
                   </span>
-                  <h3 className="text-lg font-bold text-white mt-1">{inv.title}</h3>
+                  <h3 className="text-lg font-bold text-white mt-1">{inv.title || inv.name}</h3>
                   <p className="text-xs text-neutral-400 font-mono">{inv.location}</p>
                 </div>
 
