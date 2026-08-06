@@ -30,7 +30,7 @@ uniform float uSpeed;
 varying vec2 vUv;
 
 void main() {
-  float mr = min(uResolution.x, uResolution.y);
+  float mr = max(min(uResolution.x, uResolution.y), 1.0);
   vec2 uv = (vUv.xy * 2.0 - 1.0) * uResolution.xy / mr;
 
   uv += (uMouse - vec2(0.5)) * uAmplitude;
@@ -66,6 +66,10 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     const gl = renderer.gl;
     gl.clearColor(1, 1, 1, 1);
 
+    const initialW = ctn.clientWidth || ctn.offsetWidth || (typeof window !== "undefined" ? window.innerWidth : 1920);
+    const initialH = ctn.clientHeight || ctn.offsetHeight || (ctn.parentElement ? ctn.parentElement.clientHeight || ctn.parentElement.offsetHeight : 0) || (typeof window !== "undefined" ? window.innerHeight : 1080);
+    renderer.setSize(initialW, initialH);
+
     const geometry = new Triangle(gl);
     const program = new Program(gl, {
       vertex: vertexShader,
@@ -74,7 +78,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
         uTime: { value: 0 },
         uColor: { value: new Color(...color) },
         uResolution: {
-          value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+          value: new Color(gl.canvas.width || initialW, gl.canvas.height || initialH, (gl.canvas.width || initialW) / (gl.canvas.height || initialH || 1))
         },
         uMouse: { value: new Float32Array([mousePos.current.x, mousePos.current.y]) },
         uAmplitude: { value: amplitude },
