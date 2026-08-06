@@ -373,6 +373,7 @@ export const MOCK_GRANTS: GrantScheme[] = [
 export const MOCK_INVESTORS: InvestorProfile[] = [
   {
     id: "inv_yc",
+    name: "Y Combinator",
     title: "Y Combinator (YC Batch W26)",
     type: "Accelerator",
     checkSize: "$500,000 for 7% Equity (SAFE)",
@@ -388,6 +389,7 @@ export const MOCK_INVESTORS: InvestorProfile[] = [
   },
   {
     id: "inv_sequoia_arc",
+    name: "Peak XV / Sequoia Surge Arc",
     title: "Peak XV / Sequoia Surge Arc",
     type: "VC Fund",
     checkSize: "$1,000,000 - $3,000,000",
