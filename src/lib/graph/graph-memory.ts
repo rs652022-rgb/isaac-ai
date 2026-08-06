@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { FounderProfile } from "@/types";
+import { extractMemoryFromText } from "@/lib/memory/memory-extractor";
+import { computeBusinessEngine } from "@/lib/memory/business-engine";
 import {
   StageId,
   FounderOSNode,
@@ -499,6 +501,49 @@ class FounderGraphMemoryStore {
     return this.notifications;
   }
 
+  public ingestChatText(text: string, currentProfile?: FounderProfile) {
+    const extracted = extractMemoryFromText(text);
+
+    if (extracted.businessName) this.metrics.businessName = extracted.businessName;
+    if (extracted.mrr) this.metrics.mrr = extracted.mrr;
+    if (extracted.arr) this.metrics.arr = extracted.arr;
+    if (extracted.currentRevenue) this.metrics.currentRevenue = extracted.currentRevenue;
+    if (extracted.totalCustomers) this.metrics.totalCustomers = extracted.totalCustomers;
+    if (extracted.employees) this.metrics.employees = extracted.employees;
+
+    const baseProfile: FounderProfile = currentProfile || {
+      id: "fp_01",
+      name: "Founder",
+      country: extracted.country || "United States",
+      industry: extracted.industry || this.metrics.industry || "B2B AI Software",
+      startupName: this.metrics.businessName || "Isaac AI Inc.",
+      tagline: "",
+      problem: extracted.problem || "",
+      solution: extracted.solution || "",
+      targetAudience: extracted.targetAudience || "",
+      competitors: extracted.competitors || [],
+      businessModel: "",
+      pricing: "",
+      fundingStage: extracted.fundingStage || "Idea",
+      budget: "",
+      teamSize: extracted.teamSize || this.metrics.employees || 1,
+      prototypeStatus: extracted.productStage || "Concept",
+      currentRevenue: String(this.metrics.currentRevenue || ""),
+      goals: [],
+      painPoints: [],
+      timeline: "",
+      differentiation: ""
+    };
+
+    const computed = computeBusinessEngine(baseProfile, this.metrics, this.ideaData);
+    this.metrics = computed.metrics;
+    this.documents = computed.documents;
+    this.grants = computed.grants;
+    this.investors = computed.investors;
+
+    this.notify();
+  }
+
   public updateMetrics(partial: Partial<BusinessMetrics>) {
     this.metrics = { ...this.metrics, ...partial };
     this.notify();
@@ -579,6 +624,7 @@ export function useFounderGraph() {
     investors: graphStore.getInvestors(),
     metrics: graphStore.getMetrics(),
     notifications: graphStore.getNotifications(),
+    ingestChatText: (text: string, p?: FounderProfile) => graphStore.ingestChatText(text, p),
     updateMetrics: (m: Partial<BusinessMetrics>) => graphStore.updateMetrics(m),
     updateProfileFromChat: (p: Partial<FounderProfile>) => graphStore.updateProfileFromChat(p),
     toggleResourceBookmark: (id: string) => graphStore.toggleResourceBookmark(id),

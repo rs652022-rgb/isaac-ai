@@ -5,6 +5,7 @@ import { User, FounderProfile, AgentMessage, AIAgent, StartupScores, RoadmapTask
 import { AI_AGENTS, analyzeStartupIdea } from "@/lib/agents/agent-registry";
 import { useSession } from "next-auth/react";
 import { logBrowserStep, logBrowserError } from "@/lib/ai/logger";
+import { graphStore } from "@/lib/graph/graph-memory";
 
 interface AppContextType {
   user: User | null;
@@ -195,6 +196,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
     logBrowserStep(clientReqId, `Request sent to /api/chat (Agent: ${activeAgentId}, Len: ${text.length})`);
+
+    // Ingest into Central Founder Memory Graph
+    try {
+      graphStore.ingestChatText(text.trim(), founderProfile);
+    } catch (ingestErr) {
+      logBrowserError(clientReqId, "Graph Store Ingest Warning", ingestErr);
+    }
 
     // Update founder profile during conversational onboarding
     if (typeof window !== "undefined" && window.location.pathname === "/onboarding") {
