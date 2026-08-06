@@ -219,6 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           content: text.trim(),
           conversationId: activeConversationId || undefined,
           agentId: activeAgentId,
+          profile: founderProfile,
         }),
         signal: controller.signal,
       });

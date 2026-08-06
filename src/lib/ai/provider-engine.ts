@@ -242,9 +242,17 @@ export class MultiProviderAIEngine {
                         if (isAnthropic) {
                           if (parsed.type === "content_block_delta" && parsed.delta?.text) {
                             textDelta = parsed.delta.text;
+                          } else if (parsed.delta?.text) {
+                            textDelta = parsed.delta.text;
                           }
                         } else {
-                          textDelta = parsed.choices?.[0]?.delta?.content || "";
+                          textDelta =
+                            parsed.choices?.[0]?.delta?.content ||
+                            parsed.choices?.[0]?.text ||
+                            parsed.choices?.[0]?.message?.content ||
+                            parsed.delta?.content ||
+                            parsed.delta?.text ||
+                            "";
                         }
 
                         if (textDelta) {

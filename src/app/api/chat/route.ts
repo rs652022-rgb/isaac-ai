@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       return {};
     });
 
-    const { content, conversationId: reqConversationId, agentId: reqAgentId, messages: rawMessages } = body;
+    const { content, conversationId: reqConversationId, agentId: reqAgentId, messages: rawMessages, profile: reqProfile } = body;
 
     // Validate incoming payload
     const userMessageContent =
@@ -38,7 +38,24 @@ export async function POST(req: NextRequest) {
     // 1. Intent Classifier & Agent Router Dispatch
     const { agent, classification } = AgentRouter.route(reqAgentId as AgentId, userMessageContent);
     const activeAgentId = agent.id;
-    const systemPrompt = AgentRegistry.getSystemPrompt(activeAgentId);
+    let baseSystemPrompt = AgentRegistry.getSystemPrompt(activeAgentId);
+
+    // Inject Founder Memory Graph Profile context into System Prompt
+    if (reqProfile && typeof reqProfile === "object") {
+      const profileContextParts = [];
+      if (reqProfile.startupName) profileContextParts.push(`Startup Name: "${reqProfile.startupName}"`);
+      if (reqProfile.industry) profileContextParts.push(`Industry: "${reqProfile.industry}"`);
+      if (reqProfile.problem) profileContextParts.push(`Target Problem: "${reqProfile.problem}"`);
+      if (reqProfile.solution) profileContextParts.push(`Proposed Solution: "${reqProfile.solution}"`);
+      if (reqProfile.targetAudience) profileContextParts.push(`Target Audience/ICP: "${reqProfile.targetAudience}"`);
+      if (reqProfile.businessModel) profileContextParts.push(`Business Model: "${reqProfile.businessModel}"`);
+      if (reqProfile.country) profileContextParts.push(`Country Location: "${reqProfile.country}"`);
+
+      if (profileContextParts.length > 0) {
+        baseSystemPrompt += `\n\n=== FOUNDER GRAPH MEMORY CONTEXT ===\n${profileContextParts.join("\n")}\n====================================`;
+      }
+    }
+    const systemPrompt = baseSystemPrompt;
 
     logger.logStep(
       1,
