@@ -83,19 +83,37 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     });
 
     function resize() {
-      const scale = 1;
-      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
-      if (program) {
-        program.uniforms.uResolution.value = new Color(
-          gl.canvas.width,
-          gl.canvas.height,
-          gl.canvas.width / gl.canvas.height
-        );
+      if (!ctn) return;
+      const w = ctn.clientWidth || ctn.offsetWidth || window.innerWidth;
+      const parentH = ctn.parentElement ? ctn.parentElement.clientHeight || ctn.parentElement.offsetHeight : 0;
+      const h = ctn.clientHeight || ctn.offsetHeight || parentH || window.innerHeight;
+
+      if (w > 0 && h > 0) {
+        renderer.setSize(w, h);
+        if (program) {
+          program.uniforms.uResolution.value = new Color(
+            gl.canvas.width,
+            gl.canvas.height,
+            gl.canvas.width / (gl.canvas.height || 1)
+          );
+        }
       }
     }
-    window.addEventListener('resize', resize, false);
-    resize();
 
+    window.addEventListener('resize', resize, false);
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+    });
+    resizeObserver.observe(ctn);
+    if (ctn.parentElement) {
+      resizeObserver.observe(ctn.parentElement);
+    }
+
+    // Delayed initial resize to ensure DOM layout measurements are finalized
+    requestAnimationFrame(() => {
+      resize();
+    });
 
     const mesh = new Mesh(gl, { geometry, program });
     let animateId: number;
@@ -110,8 +128,8 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
 
     function handleMouseMove(e: MouseEvent) {
       const rect = ctn.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = 1.0 - (e.clientY - rect.top) / rect.height;
+      const x = (e.clientX - rect.left) / (rect.width || 1);
+      const y = 1.0 - (e.clientY - rect.top) / (rect.height || 1);
       mousePos.current = { x, y };
       program.uniforms.uMouse.value[0] = x;
       program.uniforms.uMouse.value[1] = y;
@@ -123,10 +141,13 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     return () => {
       cancelAnimationFrame(animateId);
       window.removeEventListener('resize', resize);
+      resizeObserver.disconnect();
       if (mouseReact) {
         ctn.removeEventListener('mousemove', handleMouseMove);
       }
-      ctn.removeChild(gl.canvas);
+      if (ctn.contains(gl.canvas)) {
+        ctn.removeChild(gl.canvas);
+      }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [color, speed, amplitude, mouseReact]);
