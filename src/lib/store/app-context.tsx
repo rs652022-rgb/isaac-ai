@@ -27,11 +27,11 @@ interface AppContextType {
 
 const EMPTY_PROFILE: FounderProfile = {
   id: "fp_01",
-  name: "",
-  country: "",
-  industry: "",
-  startupName: "",
-  tagline: "",
+  name: "Founder",
+  country: "United States",
+  industry: "B2B AI Software",
+  startupName: "Isaac AI Inc.",
+  tagline: "Autonomous AI Founder Operating System",
   problem: "",
   solution: "",
   targetAudience: "",

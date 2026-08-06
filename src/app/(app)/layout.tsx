@@ -1,25 +1,15 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Navbar } from "@/components/ui/Navbar";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { useSession } from "next-auth/react";
-import { useApp } from "@/lib/store/app-context";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
-  const { founderProfile } = useApp();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Client-side enforcement for onboarding
-    // If authenticated and no startup name is found in profile, they haven't finished onboarding.
-    if (status === "authenticated" && !founderProfile.startupName) {
-      router.push("/onboarding");
-    }
-  }, [status, founderProfile.startupName, router]);
+  const pathname = usePathname();
 
   if (status === "loading") {
     return (
@@ -32,9 +22,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Hide UI if redirecting to onboarding to avoid flash
-  if (status === "authenticated" && !founderProfile.startupName) {
-    return null; 
+  // AI Founder OS Dashboard routes have their own full-screen layout with dedicated Sidebar & Header
+  if (pathname.startsWith("/dashboard")) {
+    return (
+      <>
+        {children}
+        <CommandPalette />
+      </>
+    );
   }
 
   return (
