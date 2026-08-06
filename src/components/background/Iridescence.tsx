@@ -111,15 +111,22 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
     }
 
     // Delayed initial resize to ensure DOM layout measurements are finalized
-    requestAnimationFrame(() => {
-      resize();
-    });
+    // IntersectionObserver to pause WebGL render loop when Hero section is out of viewport
+    let isIntersecting = true;
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+      },
+      { threshold: 0.01 }
+    );
+    intersectionObserver.observe(ctn);
 
     const mesh = new Mesh(gl, { geometry, program });
     let animateId: number;
 
     function update(t: number) {
       animateId = requestAnimationFrame(update);
+      if (!isIntersecting || document.visibilityState === "hidden") return;
       program.uniforms.uTime.value = t * 0.001;
       renderer.render({ scene: mesh });
     }
@@ -142,6 +149,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
       cancelAnimationFrame(animateId);
       window.removeEventListener('resize', resize);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       if (mouseReact) {
         ctn.removeEventListener('mousemove', handleMouseMove);
       }
