@@ -503,6 +503,27 @@ class FounderGraphMemoryStore {
     this.notify();
   }
 
+  public updateProfileFromChat(updates: Partial<FounderProfile>) {
+    if (updates.startupName) this.ideaData.startupName = updates.startupName;
+    if (updates.problem) this.ideaData.problemStatement = updates.problem;
+    if (updates.targetAudience) this.ideaData.icpPersona = updates.targetAudience;
+    if (updates.solution) this.ideaData.valueProposition = updates.solution;
+
+    // Recalculate Stage 1 completion based on gathered profile
+    const filledFields = Object.values(updates).filter(
+      (v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true)
+    ).length;
+
+    const completion = Math.min(100, Math.round((filledFields / 12) * 100));
+    this.nodes = this.nodes.map((node) =>
+      node.id === "idea-validation"
+        ? { ...node, completionPercentage: Math.max(node.completionPercentage, completion) }
+        : node
+    );
+
+    this.notify();
+  }
+
   public toggleResourceBookmark(id: string) {
     this.resources = this.resources.map((cat) => ({
       ...cat,
@@ -558,6 +579,7 @@ export function useFounderGraph() {
     metrics: graphStore.getMetrics(),
     notifications: graphStore.getNotifications(),
     updateMetrics: (m: Partial<BusinessMetrics>) => graphStore.updateMetrics(m),
+    updateProfileFromChat: (p: Partial<FounderProfile>) => graphStore.updateProfileFromChat(p),
     toggleResourceBookmark: (id: string) => graphStore.toggleResourceBookmark(id),
     toggleGrantBookmark: (id: string) => graphStore.toggleGrantBookmark(id),
     updateDocStatus: (id: string, status: ComplianceDoc["status"]) =>

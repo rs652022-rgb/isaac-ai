@@ -29,6 +29,7 @@ const DarkVeil = dynamic(() => import("@/components/background/DarkVeil"), {
 });
 
 import { useRouter } from "next/navigation";
+import { AIOnboardingModal } from "@/components/onboarding/AIOnboardingModal";
 import { HeroBackground } from "@/components/background/HeroBackground";
 import { NeuralBackgroundCanvas } from "@/components/background/NeuralBackgroundCanvas";
 import {
@@ -41,7 +42,17 @@ import {
 
 export function LandingPage() {
   const router = useRouter();
+  const { isOnboardingCompleted, founderProfile } = useApp();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [isAIOnboardingOpen, setIsAIOnboardingOpen] = useState(false);
+
+  const handleLaunchOS = () => {
+    if (isOnboardingCompleted || (founderProfile.startupName && founderProfile.startupName !== "Isaac AI Inc." && founderProfile.problem)) {
+      router.push("/dashboard");
+    } else {
+      setIsAIOnboardingOpen(true);
+    }
+  };
 
   const faqs = [
     {
@@ -109,7 +120,7 @@ export function LandingPage() {
             </button>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <GlowingButton
-                onClick={() => router.push("/onboarding")}
+                onClick={handleLaunchOS}
                 size="sm"
                 icon={<ArrowRight className="w-3.5 h-3.5" />}
               >
@@ -178,7 +189,7 @@ export function LandingPage() {
         >
           <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
             <GlowingButton
-              onClick={() => router.push("/login")}
+              onClick={handleLaunchOS}
               size="lg"
               icon={<ArrowRight className="w-4 h-4" />}
             >
@@ -455,7 +466,7 @@ export function LandingPage() {
                 </ul>
               </div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <GlowingButton onClick={() => router.push("/onboarding")} variant="secondary" className="w-full">Get Started Free</GlowingButton>
+                <GlowingButton onClick={handleLaunchOS} variant="secondary" className="w-full">Get Started Free</GlowingButton>
               </motion.div>
             </GlassCard>
           </motion.div>
@@ -576,6 +587,12 @@ export function LandingPage() {
         </div>
         <p>© 2026 ISAAC.AI Inc. All rights reserved. The AI Co-Founder Every Founder Deserves.</p>
       </footer>
+
+      {/* Interactive Fullscreen AI Onboarding Chat Modal */}
+      <AIOnboardingModal
+        isOpen={isAIOnboardingOpen}
+        onClose={() => setIsAIOnboardingOpen(false)}
+      />
     </div>
   );
 }

@@ -11,6 +11,8 @@ interface AppContextType {
   setUser: (u: User | null) => void;
   founderProfile: FounderProfile;
   updateFounderProfile: (updates: Partial<FounderProfile>) => void;
+  isOnboardingCompleted: boolean;
+  setIsOnboardingCompleted: (completed: boolean) => void;
   selectedAgent: AIAgent;
   setSelectedAgent: (agent: AIAgent) => void;
   messages: AgentMessage[];
@@ -80,6 +82,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setUser = () => {};
 
   const [founderProfile, setFounderProfile] = useState<FounderProfile>(EMPTY_PROFILE);
+  const [isOnboardingCompleted, setIsOnboardingCompletedState] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("isaac_onboarding_completed") === "true";
+    }
+    return false;
+  });
+
+  const setIsOnboardingCompleted = (completed: boolean) => {
+    setIsOnboardingCompletedState(completed);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("isaac_onboarding_completed", completed ? "true" : "false");
+    }
+  };
+
   const [selectedAgent, setSelectedAgent] = useState<AIAgent>(AI_AGENTS[0]); // Orchestrator
   const [scores, setScores] = useState<StartupScores>(() => analyzeStartupIdea(EMPTY_PROFILE));
   const [roadmapTasks, setRoadmapTasks] = useState<RoadmapTask[]>(INITIAL_ROADMAP);
@@ -337,6 +353,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setUser,
         founderProfile,
         updateFounderProfile,
+        isOnboardingCompleted,
+        setIsOnboardingCompleted,
         selectedAgent,
         setSelectedAgent,
         messages,
