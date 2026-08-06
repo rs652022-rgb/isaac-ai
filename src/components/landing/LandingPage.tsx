@@ -128,7 +128,7 @@ export function LandingPage() {
       </motion.header>
 
       {/* 2. Hero Section */}
-      <section className="relative z-10 w-full overflow-hidden">
+      <section className="relative z-10 w-full min-h-[85vh] overflow-hidden">
         {/* Dedicated Animated Iridescence WebGL Hero Background */}
         <HeroBackground />
 

@@ -26,7 +26,7 @@ export function HeroBackground() {
     <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">
       {/* 1. Iridescence WebGL Canvas */}
       {!prefersReducedMotion ? (
-        <div className="absolute inset-0 w-full h-full opacity-75 transition-opacity duration-1000">
+        <div className="absolute inset-0 w-full h-full opacity-100 transition-opacity duration-1000">
           <Iridescence
             color={[1, 1, 1]}
             speed={1.0}
@@ -39,7 +39,7 @@ export function HeroBackground() {
       )}
 
       {/* 2. Delicate Ambient Fade Overlay to preserve high text contrast while letting the Iridescence animation shine through brightly */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black pointer-events-none z-1" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none z-1" />
     </div>
   );
 }
