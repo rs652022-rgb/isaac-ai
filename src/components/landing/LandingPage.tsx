@@ -128,79 +128,81 @@ export function LandingPage() {
       </motion.header>
 
       {/* 2. Hero Section */}
-      <section className="relative z-10 pt-24 pb-20 px-6 text-center max-w-6xl mx-auto">
-        {/* Dedicated Animated Hero Background */}
+      <section className="relative z-10 w-full overflow-hidden">
+        {/* Dedicated Animated Iridescence WebGL Hero Background */}
         <HeroBackground />
 
-        {/* Futuristic Pill Badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: [0, -4, 0], scale: 1 }}
-          transition={{
-            opacity: { duration: 0.5 },
-            scale: { duration: 0.5 },
-            y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-          }}
-          className="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 backdrop-blur-md text-xs font-medium text-neutral-300 mb-8 shadow-[0_0_20px_rgba(255,255,255,0.05)] cursor-default"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
-          <span>The World&apos;s First Autonomous AI Founder OS</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-        </motion.div>
-
-        {/* Hero Title with Instrument Serif Emphasis */}
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.04] mb-6 text-white"
-        >
-          The AI Co-Founder <br />
-          <motion.span 
-            initial={{ opacity: 0, filter: "blur(6px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="font-serif-accent italic font-normal text-neutral-300 inline-block"
+        <div className="relative z-10 pt-24 pb-20 px-6 text-center max-w-6xl mx-auto">
+          {/* Futuristic Pill Badge */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: [0, -4, 0], scale: 1 }}
+            transition={{
+              opacity: { duration: 0.5 },
+              scale: { duration: 0.5 },
+              y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            }}
+            className="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 backdrop-blur-md text-xs font-medium text-neutral-300 mb-8 shadow-[0_0_20px_rgba(255,255,255,0.05)] cursor-default"
           >
-            Every Founder Deserves
-          </motion.span>
-        </motion.h1>
-
-        {/* Hero Description */}
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-          className="text-base sm:text-lg text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
-        >
-          From Day 0 idea validation to Delaware C-Corp incorporation, technical PRDs, 3-year financial models, and VC pitch grilling — powered by 25+ specialized C-suite AI agents working in parallel.
-        </motion.p>
-
-        {/* Action CTA Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
-        >
-          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
-            <GlowingButton
-              onClick={handleLaunchOS}
-              size="lg"
-              icon={<ArrowRight className="w-4 h-4" />}
-            >
-              Get Started Free
-            </GlowingButton>
+            <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+            <span>The World&apos;s First Autonomous AI Founder OS</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
           </motion.div>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => router.push("/login")}
-            className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
+
+          {/* Hero Title with Instrument Serif Emphasis */}
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.04] mb-6 text-white"
           >
-            Sign In
-          </motion.button>
-        </motion.div>
+            The AI Co-Founder <br />
+            <motion.span 
+              initial={{ opacity: 0, filter: "blur(6px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="font-serif-accent italic font-normal text-neutral-300 inline-block"
+            >
+              Every Founder Deserves
+            </motion.span>
+          </motion.h1>
+
+          {/* Hero Description */}
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+            className="text-base sm:text-lg text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
+          >
+            From Day 0 idea validation to Delaware C-Corp incorporation, technical PRDs, 3-year financial models, and VC pitch grilling — powered by 25+ specialized C-suite AI agents working in parallel.
+          </motion.p>
+
+          {/* Action CTA Buttons */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          >
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+              <GlowingButton
+                onClick={handleLaunchOS}
+                size="lg"
+                icon={<ArrowRight className="w-4 h-4" />}
+              >
+                Get Started Free
+              </GlowingButton>
+            </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => router.push("/login")}
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200 text-sm font-medium transition-all backdrop-blur-md hover:border-white/30"
+            >
+              Sign In
+            </motion.button>
+          </motion.div>
+        </div>
       </section>
 
       {/* 3. Trusted By Marquee */}
