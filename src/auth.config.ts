@@ -8,9 +8,9 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isPublicPath = nextUrl.pathname === "/" || nextUrl.pathname === "/login";
+      const isProtectedAdmin = nextUrl.pathname.startsWith("/admin");
 
-      if (!isLoggedIn && !isPublicPath) {
+      if (isProtectedAdmin && !isLoggedIn) {
         return false;
       }
 

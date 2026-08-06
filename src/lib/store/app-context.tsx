@@ -67,7 +67,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     avatar: sessionUser.image || "👤",
     subscriptionPlan: (sessionUser.subscriptionPlan as "Free" | "Pro" | "Business" | "Enterprise") || "Pro",
     createdAt: new Date().toISOString()
-  } : null;
+  } : {
+    id: "guest_founder",
+    name: "Guest Founder",
+    email: "founder@isaac.ai",
+    role: "Founder",
+    avatar: "👤",
+    subscriptionPlan: "Pro",
+    createdAt: new Date().toISOString()
+  };
 
   const setUser = () => {};
 
