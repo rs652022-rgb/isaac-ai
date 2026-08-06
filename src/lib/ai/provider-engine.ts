@@ -221,20 +221,26 @@ export class MultiProviderAIEngine {
                   if (done) break;
 
                   buffer += decoder.decode(value, { stream: true });
-                  const lines = buffer.split("\n");
+                  const lines = buffer.split(/\r?\n/);
                   buffer = lines.pop() || "";
 
                   for (const line of lines) {
                     const trimmed = line.trim();
                     if (!trimmed || trimmed.startsWith(":")) continue;
 
-                    if (trimmed === "data: [DONE]") {
+                    if (trimmed === "data: [DONE]" || trimmed === "[DONE]") {
                       controllerStream.close();
                       return;
                     }
 
+                    let jsonStr = "";
                     if (trimmed.startsWith("data: ")) {
-                      const jsonStr = trimmed.slice(6);
+                      jsonStr = trimmed.slice(6);
+                    } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                      jsonStr = trimmed;
+                    }
+
+                    if (jsonStr) {
                       try {
                         const parsed = JSON.parse(jsonStr);
 
@@ -244,6 +250,8 @@ export class MultiProviderAIEngine {
                             textDelta = parsed.delta.text;
                           } else if (parsed.delta?.text) {
                             textDelta = parsed.delta.text;
+                          } else if (parsed.text) {
+                            textDelta = parsed.text;
                           }
                         } else {
                           textDelta =

@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     let payloadMessages: ChatMessagePayload[] = [];
     if (Array.isArray(rawMessages) && rawMessages.length > 0) {
       payloadMessages = rawMessages.map((m: any) => ({
-        role: m.role === "assistant" || m.sender === "ai" ? "assistant" : "user",
+        role: m.role === "system" ? "system" : (m.role === "assistant" || m.sender === "ai" ? "assistant" : "user"),
         content: m.content || m.text || "",
       }));
     } else {
@@ -165,10 +165,11 @@ export async function POST(req: NextRequest) {
     // 5. Parse response and store assistant completion in database
     let fullAssistantResponse = "";
     const parseStart = Date.now();
+    const streamDecoder = new TextDecoder("utf-8", { fatal: false });
 
     const transformStream = new TransformStream({
       transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
+        const text = streamDecoder.decode(chunk, { stream: true });
         fullAssistantResponse += text;
         controller.enqueue(chunk);
       },
