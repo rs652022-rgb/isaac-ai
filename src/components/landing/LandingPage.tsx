@@ -68,30 +68,8 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
-      {/* 60 FPS GPU-Accelerated Neural Background Canvas */}
-      <NeuralBackgroundCanvas opacity={0.08} />
-
-      {/* DarkVeil WebGL Background Shader */}
-      <div className="fixed inset-0 pointer-events-none -z-20">
-        <DarkVeil
-          hueShift={220}
-          noiseIntensity={0.05}
-          scanlineIntensity={0.1}
-          speed={0.3}
-          scanlineFrequency={150}
-          warpAmount={0.2}
-          resolutionScale={1.0}
-        />
-      </div>
-
-      {/* Dark Gradient Overlay for Maximum Visual Depth */}
-      <div 
-        className="fixed inset-0 pointer-events-none -z-10" 
-        style={{ background: 'linear-gradient(to bottom, rgba(5,8,15,0.55), rgba(8,12,25,0.72), rgba(5,8,15,0.82))' }} 
-      />
-
-      {/* Grid Pattern Overlay */}
-      <div className="fixed inset-0 bg-radial-grid opacity-20 pointer-events-none -z-10" />
+      {/* Grid Pattern Accent Overlay */}
+      <div className="fixed inset-0 bg-radial-grid opacity-15 pointer-events-none -z-10" />
 
       {/* 1. Floating Glass Navbar */}
       <motion.header 

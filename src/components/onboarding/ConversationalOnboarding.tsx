@@ -64,9 +64,6 @@ export function ConversationalOnboarding() {
   if (!hasStarted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-black selection:bg-white selection:text-black">
-        {/* 60 FPS GPU-Accelerated Neural Background Canvas */}
-        <NeuralBackgroundCanvas opacity={0.08} />
-
         {/* Ambient Radial Glow Overlay */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.02] blur-[120px] pointer-events-none rounded-full" />
 
@@ -153,9 +150,6 @@ export function ConversationalOnboarding() {
 
   return (
     <div className="min-h-screen flex flex-col p-4 sm:p-8 items-center justify-center relative overflow-hidden bg-black selection:bg-white selection:text-black">
-      {/* 60 FPS GPU-Accelerated Neural Background Canvas */}
-      <NeuralBackgroundCanvas opacity={0.07} />
-
       {/* Subtle Background Radial Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/[0.02] blur-[150px] pointer-events-none" />
 
