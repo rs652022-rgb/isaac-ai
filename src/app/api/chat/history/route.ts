@@ -22,13 +22,15 @@ export async function GET(req: NextRequest) {
     let userId = session?.user?.id;
 
     if (!userId) {
+      const dbStart = Date.now();
       try {
-        const dbStart = Date.now();
         const guestUser = await db.user.findUnique({ where: { email: "guest@isaac.ai" } });
         userId = guestUser?.id;
         logger.addDatabaseTime(Date.now() - dbStart);
       } catch (dbErr: any) {
-        logger.logWarning(1, "History User Lookup", dbErr.message || String(dbErr));
+        const durationMs = Date.now() - dbStart;
+        logger.addDatabaseTime(durationMs);
+        logger.logPrismaError({ operation: "History Guest User Lookup", durationMs, error: dbErr });
       }
     }
 
@@ -41,8 +43,8 @@ export async function GET(req: NextRequest) {
     let targetConvId = conversationId;
 
     if (!targetConvId) {
+      const dbStart = Date.now();
       try {
-        const dbStart = Date.now();
         const latestConv = await db.conversation.findFirst({
           where: { userId, agentId },
           orderBy: { updatedAt: "desc" },
@@ -50,7 +52,9 @@ export async function GET(req: NextRequest) {
         targetConvId = latestConv?.id || null;
         logger.addDatabaseTime(Date.now() - dbStart);
       } catch (dbConvErr: any) {
-        logger.logWarning(2, "Latest Conversation Lookup", dbConvErr.message || String(dbConvErr));
+        const durationMs = Date.now() - dbStart;
+        logger.addDatabaseTime(durationMs);
+        logger.logPrismaError({ operation: "Latest Conversation Lookup", durationMs, error: dbConvErr });
       }
     }
 
@@ -60,8 +64,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ messages: [], conversationId: null });
     }
 
+    const dbStart = Date.now();
     try {
-      const dbStart = Date.now();
       const dbMessages = await db.message.findMany({
         where: { conversationId: targetConvId },
         orderBy: { createdAt: "asc" },
@@ -86,7 +90,9 @@ export async function GET(req: NextRequest) {
         conversationId: targetConvId,
       });
     } catch (dbMsgsErr: any) {
-      logger.logWarning(3, "Message List Fetch", dbMsgsErr.message || String(dbMsgsErr));
+      const dbMs = Date.now() - dbStart;
+      logger.addDatabaseTime(dbMs);
+      logger.logPrismaError({ operation: "Message List Fetch", durationMs: dbMs, error: dbMsgsErr });
       logger.logSummary(true);
       return NextResponse.json({ messages: [], conversationId: targetConvId });
     }

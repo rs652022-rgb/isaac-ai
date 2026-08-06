@@ -19,6 +19,37 @@ export interface PipelineMetrics {
   retryCount: number;
 }
 
+export interface OpenRouterLogParams {
+  model: string;
+  httpStatus: number;
+  durationMs: number;
+  responseBody?: string;
+  tokenUsage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+  error?: any;
+}
+
+export interface PrismaLogParams {
+  operation: string;
+  durationMs: number;
+  error: any;
+}
+
+export interface NetworkLogParams {
+  targetUrl: string;
+  durationMs: number;
+  error: any;
+}
+
+export interface ParsingLogParams {
+  step: string;
+  rawChunk?: string;
+  error: any;
+}
+
 export class RequestLogger {
   public requestId: string;
   private startTime: number;
@@ -45,18 +76,6 @@ export class RequestLogger {
       console.log(`[AI LOGGER] INITIALIZING REQUEST: ${this.requestId}`);
       console.log(`==================================================`);
     }
-  }
-
-  public startStepTimer(stepKey: string) {
-    this.stepTimestamps.set(stepKey, Date.now());
-  }
-
-  public endStepTimer(stepKey: string): number {
-    const start = this.stepTimestamps.get(stepKey);
-    if (!start) return 0;
-    const elapsed = Date.now() - start;
-    this.stepTimestamps.delete(stepKey);
-    return elapsed;
   }
 
   public addDatabaseTime(ms: number) {
@@ -88,6 +107,96 @@ export class RequestLogger {
 
   public logWarning(stepNum: number, stepName: string, warningMessage: string) {
     console.warn(`[${this.requestId}] STEP ${stepNum}: ${stepName} ⚠️ [Warning: ${warningMessage}]`);
+  }
+
+  /**
+   * Log 1-6: Detailed OpenRouter Response & HTTP Status
+   */
+  public logOpenRouterDetails(params: OpenRouterLogParams) {
+    console.log(`\n==================================================`);
+    console.log(`REQUEST ID: ${this.requestId}`);
+    console.log(`STEP: OpenRouter Inference Request`);
+    console.log(`MODEL: ${params.model}`);
+    console.log(`HTTP STATUS: ${params.httpStatus} ${params.httpStatus >= 200 && params.httpStatus < 300 ? "OK ✅" : "FAILED ❌"}`);
+    console.log(`DURATION: ${params.durationMs}ms`);
+    if (params.tokenUsage) {
+      const tu = params.tokenUsage;
+      console.log(`TOKEN USAGE: Prompt: ${tu.promptTokens ?? "N/A"} | Completion: ${tu.completionTokens ?? "N/A"} | Total: ${tu.totalTokens ?? "N/A"}`);
+    }
+    if (params.responseBody) {
+      console.log(`RESPONSE BODY:\n${params.responseBody}`);
+    }
+    if (params.error) {
+      const errStr = params.error instanceof Error ? params.error.stack || params.error.message : String(params.error);
+      console.error(`OPENROUTER ERROR DETAILS:\n${errStr}`);
+    }
+    console.log(`==================================================\n`);
+  }
+
+  /**
+   * Log 7: Timeout details
+   */
+  public logTimeout(step: string, timeoutMs: number, attempt: number) {
+    console.warn(`\n--------------------------------------------------`);
+    console.warn(`[TIMEOUT EXCEEDED]`);
+    console.warn(`Request ID: ${this.requestId}`);
+    console.warn(`Step: ${step}`);
+    console.warn(`Timeout Limit: ${timeoutMs}ms`);
+    console.warn(`Attempt: ${attempt}`);
+    console.warn(`Timestamp: ${new Date().toISOString()}`);
+    console.warn(`--------------------------------------------------\n`);
+  }
+
+  /**
+   * Log 8: Prisma Database Errors Separately
+   */
+  public logPrismaError(params: PrismaLogParams) {
+    const errorMsg = params.error instanceof Error ? params.error.message : String(params.error);
+    const stack = params.error instanceof Error ? params.error.stack : undefined;
+    console.error(`\n--------------------------------------------------`);
+    console.error(`[PRISMA DATABASE ERROR]`);
+    console.error(`Request ID: ${this.requestId}`);
+    console.error(`Operation: ${params.operation}`);
+    console.error(`Execution Time: ${params.durationMs}ms`);
+    console.error(`Error Message: ${errorMsg}`);
+    if (stack) {
+      console.error(`Prisma Stack Trace:\n${stack}`);
+    }
+    console.error(`--------------------------------------------------\n`);
+  }
+
+  /**
+   * Log 9: Network Connection Errors Separately
+   */
+  public logNetworkError(params: NetworkLogParams) {
+    const errorMsg = params.error instanceof Error ? params.error.message : String(params.error);
+    const stack = params.error instanceof Error ? params.error.stack : undefined;
+    console.error(`\n--------------------------------------------------`);
+    console.error(`[NETWORK CONNECTION ERROR]`);
+    console.error(`Request ID: ${this.requestId}`);
+    console.error(`Target URL: ${params.targetUrl}`);
+    console.error(`Latency Before Failure: ${params.durationMs}ms`);
+    console.error(`Network Error: ${errorMsg}`);
+    if (stack) {
+      console.error(`Network Stack Trace:\n${stack}`);
+    }
+    console.error(`--------------------------------------------------\n`);
+  }
+
+  /**
+   * Log 10: Stream Parsing Errors Separately
+   */
+  public logParsingError(params: ParsingLogParams) {
+    const errorMsg = params.error instanceof Error ? params.error.message : String(params.error);
+    console.error(`\n--------------------------------------------------`);
+    console.error(`[PARSING ERROR]`);
+    console.error(`Request ID: ${this.requestId}`);
+    console.error(`Step: ${params.step}`);
+    if (params.rawChunk) {
+      console.error(`Raw Chunk Content: ${params.rawChunk}`);
+    }
+    console.error(`Parse Exception: ${errorMsg}`);
+    console.error(`--------------------------------------------------\n`);
   }
 
   public logError(stepNum: number, stepName: string, error: any) {

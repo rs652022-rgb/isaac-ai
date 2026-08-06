@@ -17,7 +17,7 @@ export interface StreamChatOptions {
 
 /**
  * Initiates a streaming completion request to OpenRouter with 30s timeout and 1x auto-retry.
- * Endpoint: https://openrouter.ai/api/v1/chat/completions
+ * Log details: HTTP status, complete response body, model, duration, token usage, timeouts, network & parsing errors.
  */
 export async function streamChatCompletion({
   messages,
@@ -39,7 +39,7 @@ export async function streamChatCompletion({
   }
   formattedMessages.push(...messages);
 
-  logger?.logStep(4, "OpenRouter request sent", undefined, `Model: ${activeModel} | Context size: ${formattedMessages.length} msgs`);
+  logger?.logStep(4, "OpenRouter request sent", undefined, `Model: "${activeModel}" | Context size: ${formattedMessages.length} msgs`);
 
   let response: Response | null = null;
   let lastError: Error | null = null;
@@ -48,7 +48,7 @@ export async function streamChatCompletion({
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      logger?.logWarning(4, "OpenRouter Timeout", `Attempt ${attempt} timed out after ${timeoutMs}ms.`);
+      logger?.logTimeout("OpenRouter API Request", timeoutMs, attempt);
       controller.abort();
     }, timeoutMs);
 
@@ -80,21 +80,40 @@ export async function streamChatCompletion({
       clearTimeout(timer);
       const latencyMs = Date.now() - startTime;
 
+      // Extract token usage headers if provided by OpenRouter
+      const promptTokens = response.headers.get("x-prompt-tokens") ? parseInt(response.headers.get("x-prompt-tokens")!, 10) : undefined;
+      const completionTokens = response.headers.get("x-completion-tokens") ? parseInt(response.headers.get("x-completion-tokens")!, 10) : undefined;
+      const totalTokens = response.headers.get("x-total-tokens") ? parseInt(response.headers.get("x-total-tokens")!, 10) : undefined;
+
+      const tokenUsage = (promptTokens || completionTokens || totalTokens) ? { promptTokens, completionTokens, totalTokens } : undefined;
+
       if (response.ok) {
         logger?.setOpenRouterTime(latencyMs);
-        logger?.logStep(5, "Response received", latencyMs, `HTTP ${response.status} OK`);
+        logger?.logOpenRouterDetails({
+          model: activeModel,
+          httpStatus: response.status,
+          durationMs: latencyMs,
+          tokenUsage,
+        });
         break; // Successfully connected!
       } else {
         const errorText = await response.text();
-        logger?.logError(4, `OpenRouter HTTP ${response.status} Error`, errorText);
 
         let parsedErrorMsg = errorText;
         try {
           const errorJson = JSON.parse(errorText);
           parsedErrorMsg = errorJson.error?.message || errorJson.message || errorText;
         } catch {
-          // Use raw text if not JSON
+          // Raw text
         }
+
+        logger?.logOpenRouterDetails({
+          model: activeModel,
+          httpStatus: response.status,
+          durationMs: latencyMs,
+          responseBody: errorText,
+          error: parsedErrorMsg,
+        });
 
         if (response.status === 401) {
           throw new Error(`[OpenRouter 401 Unauthorized] Invalid OPENROUTER_API_KEY. (${parsedErrorMsg})`);
@@ -110,12 +129,19 @@ export async function streamChatCompletion({
       }
     } catch (err: any) {
       clearTimeout(timer);
+      const durationMs = Date.now() - startTime;
+
       if (err.name === "AbortError") {
         lastError = new Error(`OpenRouter API request timed out after ${timeoutMs / 1000} seconds.`);
+        logger?.logTimeout("Fetch Aborted", timeoutMs, attempt);
       } else {
         lastError = err;
+        logger?.logNetworkError({
+          targetUrl: config.baseUrl,
+          durationMs,
+          error: err,
+        });
       }
-      logger?.logError(4, `OpenRouter Connection Exception (Attempt ${attempt})`, lastError);
     }
 
     if (attempt < maxAttempts) {
@@ -159,20 +185,54 @@ export async function streamChatCompletion({
               const jsonStr = trimmed.slice(6);
               try {
                 const parsed = JSON.parse(jsonStr);
+
+                // Handle stream chunk errors
+                if (parsed.error) {
+                  const errorMsg = parsed.error.message || JSON.stringify(parsed.error);
+                  logger?.logParsingError({
+                    step: "Stream Chunk Error",
+                    rawChunk: jsonStr,
+                    error: errorMsg,
+                  });
+                  controller.error(new Error(`[OpenRouter Stream Error] ${errorMsg}`));
+                  return;
+                }
+
+                // Extract token usage if sent in final stream chunk
+                if (parsed.usage) {
+                  logger?.logOpenRouterDetails({
+                    model: activeModel,
+                    httpStatus: 200,
+                    durationMs: 0,
+                    tokenUsage: {
+                      promptTokens: parsed.usage.prompt_tokens,
+                      completionTokens: parsed.usage.completion_tokens,
+                      totalTokens: parsed.usage.total_tokens,
+                    },
+                  });
+                }
+
                 const deltaContent = parsed.choices?.[0]?.delta?.content || "";
                 if (deltaContent) {
                   fullAccumulatedText += deltaContent;
                   controller.enqueue(new TextEncoder().encode(deltaContent));
                 }
-              } catch (e) {
-                // Ignore parse errors on partial JSON chunks
+              } catch (e: any) {
+                logger?.logParsingError({
+                  step: "JSON Chunk Parsing",
+                  rawChunk: jsonStr,
+                  error: e,
+                });
               }
             }
           }
         }
         controller.close();
       } catch (err) {
-        logger?.logError(6, "Stream Decoding Error", err);
+        logger?.logParsingError({
+          step: "Stream Decoding Loop",
+          error: err,
+        });
         controller.error(err);
       }
     },

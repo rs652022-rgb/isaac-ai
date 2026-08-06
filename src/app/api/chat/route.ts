@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch((err) => {
-      logger.logError(1, "JSON Body Parsing", err);
+      logger.logParsingError({ step: "JSON Body Parsing", error: err });
       return {};
     });
 
@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
     let userId = session?.user?.id;
     if (!userId) {
       const guestEmail = "guest@isaac.ai";
+      const dbUserStart = Date.now();
       try {
-        const dbStart = Date.now();
         let guestUser = await db.user.findUnique({ where: { email: guestEmail } });
         if (!guestUser) {
           guestUser = await db.user.create({
@@ -61,9 +61,11 @@ export async function POST(req: NextRequest) {
           });
         }
         userId = guestUser.id;
-        logger.addDatabaseTime(Date.now() - dbStart);
+        logger.addDatabaseTime(Date.now() - dbUserStart);
       } catch (dbUserErr: any) {
-        logger.logWarning(1, "Guest User Database Resolution", dbUserErr.message || String(dbUserErr));
+        const durationMs = Date.now() - dbUserStart;
+        logger.addDatabaseTime(durationMs);
+        logger.logPrismaError({ operation: "Guest User Resolution", durationMs, error: dbUserErr });
         userId = "guest_anon_" + Math.random().toString(36).substring(2, 9);
       }
     }
@@ -97,7 +99,7 @@ export async function POST(req: NextRequest) {
     } catch (dbConvErr: any) {
       const dbConvMs = Date.now() - dbConvStart;
       logger.addDatabaseTime(dbConvMs);
-      logger.logWarning(2, "Conversation Storage Fallback", dbConvErr.message || String(dbConvErr));
+      logger.logPrismaError({ operation: "Conversation Creation/Lookup", durationMs: dbConvMs, error: dbConvErr });
     }
 
     // Save User Message into Supabase safely
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest) {
     } catch (dbMsgErr: any) {
       const dbMsgMs = Date.now() - dbMsgStart;
       logger.addDatabaseTime(dbMsgMs);
-      logger.logWarning(3, "User Message Storage Fallback", dbMsgErr.message || String(dbMsgErr));
+      logger.logPrismaError({ operation: "User Message Storage", durationMs: dbMsgMs, error: dbMsgErr });
     }
 
     // Load past conversation history from Supabase safely
@@ -141,8 +143,9 @@ export async function POST(req: NextRequest) {
         }));
       }
     } catch (dbHistErr: any) {
-      logger.addDatabaseTime(Date.now() - dbHistStart);
-      logger.logWarning(3, "History Fetch Fallback", dbHistErr.message || String(dbHistErr));
+      const dbHistMs = Date.now() - dbHistStart;
+      logger.addDatabaseTime(dbHistMs);
+      logger.logPrismaError({ operation: "History List Fetch", durationMs: dbHistMs, error: dbHistErr });
     }
 
     if (payloadMessages.length === 0) {
@@ -190,8 +193,9 @@ export async function POST(req: NextRequest) {
             logger.addDatabaseTime(dbSaveMs);
             logger.logStep(6, "Assistant message saved", dbSaveMs, `Msg ID: ${savedMsg.id}`);
           } catch (dbSaveAssistantErr: any) {
-            logger.addDatabaseTime(Date.now() - dbSaveStart);
-            logger.logWarning(6, "Assistant Message Storage Fallback", dbSaveAssistantErr.message || String(dbSaveAssistantErr));
+            const dbSaveMs = Date.now() - dbSaveStart;
+            logger.addDatabaseTime(dbSaveMs);
+            logger.logPrismaError({ operation: "Assistant Message Storage", durationMs: dbSaveMs, error: dbSaveAssistantErr });
           }
         }
 
@@ -214,6 +218,7 @@ export async function POST(req: NextRequest) {
     logger.logError(8, "Chat Pipeline Exception", error);
     logger.logSummary(false);
 
+    // Keep user-friendly error message in production, print full error to server console
     return NextResponse.json(
       {
         error: error.message || "An unexpected error occurred in the AI co-founder service layer.",
