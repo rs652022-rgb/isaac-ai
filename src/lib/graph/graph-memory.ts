@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FounderProfile } from "@/types";
 import {
   StageId,
   FounderOSNode,
@@ -504,10 +505,10 @@ class FounderGraphMemoryStore {
   }
 
   public updateProfileFromChat(updates: Partial<FounderProfile>) {
-    if (updates.startupName) this.ideaData.startupName = updates.startupName;
-    if (updates.problem) this.ideaData.problemStatement = updates.problem;
-    if (updates.targetAudience) this.ideaData.icpPersona = updates.targetAudience;
-    if (updates.solution) this.ideaData.valueProposition = updates.solution;
+    if (updates.startupName) this.ideaData.ideaName = updates.startupName;
+    if (updates.problem) this.ideaData.leanCanvas.problem = [updates.problem];
+    if (updates.solution) this.ideaData.leanCanvas.solution = [updates.solution];
+    if (updates.targetAudience) this.ideaData.icp.title = updates.targetAudience;
 
     // Recalculate Stage 1 completion based on gathered profile
     const filledFields = Object.values(updates).filter(
