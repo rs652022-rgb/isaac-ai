@@ -10,10 +10,11 @@ export interface StreamChatOptions {
   systemPrompt?: string;
   model?: string;
   temperature?: number;
+  timeoutMs?: number;
 }
 
 /**
- * Initiates a streaming completion request to OpenRouter.
+ * Initiates a streaming completion request to OpenRouter with 30s timeout and 1x auto-retry.
  * Endpoint: https://openrouter.ai/api/v1/chat/completions
  */
 export async function streamChatCompletion({
@@ -21,74 +22,107 @@ export async function streamChatCompletion({
   systemPrompt,
   model = DEFAULT_MODEL,
   temperature = 0.7,
+  timeoutMs = 30000,
 }: StreamChatOptions): Promise<{ stream: ReadableStream; getFullText: () => Promise<string> }> {
   const config = getOpenRouterConfig();
-
   const activeModel = model || config.defaultModel;
-  const formattedMessages: ChatMessagePayload[] = [];
 
+  const formattedMessages: ChatMessagePayload[] = [];
   if (systemPrompt) {
     formattedMessages.push({
       role: "system",
       content: systemPrompt,
     });
   }
-
   formattedMessages.push(...messages);
 
-  console.log(`[OpenRouter Request] Dispatching completion to model "${activeModel}" via endpoint ${config.baseUrl}`);
-  console.log(`[OpenRouter Payload] ${formattedMessages.length} total messages in context payload.`);
+  console.log(`[OpenRouter Request] Model: "${activeModel}" | Payload Messages: ${formattedMessages.length} | Timeout: ${timeoutMs}ms`);
 
-  const startTime = Date.now();
+  let response: Response | null = null;
+  let lastError: Error | null = null;
+  const maxAttempts = 2; // 1 initial + 1 automatic retry
 
-  const response = await fetch(config.baseUrl, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${config.apiKey}`,
-      "HTTP-Referer": "https://isaac-ai.app",
-      "X-Title": "Isaac AI Founder OS",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: activeModel,
-      messages: formattedMessages,
-      temperature,
-      stream: true,
-    }),
-  });
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      console.warn(`[OpenRouter Warning] Request attempt ${attempt} timed out after ${timeoutMs}ms. Aborting connection...`);
+      controller.abort();
+    }, timeoutMs);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`[OpenRouter HTTP Error ${response.status}] Request failed in ${Date.now() - startTime}ms.`);
-    console.error(`[OpenRouter Error Details]:`, errorText);
+    const startTime = Date.now();
 
-    let parsedErrorMsg = errorText;
     try {
-      const errorJson = JSON.parse(errorText);
-      parsedErrorMsg = errorJson.error?.message || errorJson.message || errorText;
-    } catch {
-      // Use raw text if not JSON
+      if (attempt > 1) {
+        console.warn(`[OpenRouter Retry] Initiating automatic retry (Attempt ${attempt}/${maxAttempts})...`);
+      }
+
+      response = await fetch(config.baseUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${config.apiKey}`,
+          "HTTP-Referer": "https://isaac-ai.app",
+          "X-Title": "Isaac AI Founder OS",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: activeModel,
+          messages: formattedMessages,
+          temperature,
+          stream: true,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+
+      if (response.ok) {
+        console.log(`[OpenRouter Success] Attempt ${attempt} connected (HTTP 200) in ${Date.now() - startTime}ms.`);
+        break; // Successfully connected!
+      } else {
+        const errorText = await response.text();
+        console.error(`[OpenRouter HTTP Error ${response.status}] Attempt ${attempt} failed in ${Date.now() - startTime}ms:`, errorText);
+
+        let parsedErrorMsg = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          parsedErrorMsg = errorJson.error?.message || errorJson.message || errorText;
+        } catch {
+          // Use raw text if not JSON
+        }
+
+        if (response.status === 401) {
+          throw new Error(`[OpenRouter 401 Unauthorized] Invalid OPENROUTER_API_KEY. (${parsedErrorMsg})`);
+        } else if (response.status === 402) {
+          throw new Error(`[OpenRouter 402 Payment Required] Account has insufficient credits. (${parsedErrorMsg})`);
+        } else if (response.status === 404) {
+          throw new Error(`[OpenRouter 404 Not Found] Model "${activeModel}" not found on OpenRouter. (${parsedErrorMsg})`);
+        } else if (response.status === 429) {
+          lastError = new Error(`[OpenRouter 429 Rate Limited] (${parsedErrorMsg})`);
+        } else {
+          lastError = new Error(`[OpenRouter HTTP ${response.status}] (${parsedErrorMsg})`);
+        }
+      }
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (err.name === "AbortError") {
+        lastError = new Error(`OpenRouter API request timed out after ${timeoutMs / 1000} seconds.`);
+      } else {
+        lastError = err;
+      }
+      console.error(`[OpenRouter Error] Attempt ${attempt} encountered error:`, lastError.message);
     }
 
-    if (response.status === 401) {
-      throw new Error(`[OpenRouter 401 Unauthorized] Invalid OPENROUTER_API_KEY. Please verify your API key in .env. (${parsedErrorMsg})`);
-    } else if (response.status === 402) {
-      throw new Error(`[OpenRouter 402 Payment Required] Your OpenRouter account has insufficient credits. (${parsedErrorMsg})`);
-    } else if (response.status === 404) {
-      throw new Error(`[OpenRouter 404 Not Found] Model "${activeModel}" was not found on OpenRouter. (${parsedErrorMsg})`);
-    } else if (response.status === 429) {
-      throw new Error(`[OpenRouter 429 Rate Limited] API rate limit exceeded. (${parsedErrorMsg})`);
-    } else {
-      throw new Error(`OpenRouter API request failed (${response.status}): ${parsedErrorMsg}`);
+    if (attempt < maxAttempts) {
+      // Short delay before retry
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
   }
 
-  if (!response.body) {
-    console.error("[OpenRouter Error] Response body is null.");
-    throw new Error("OpenRouter API returned an empty response body.");
+  if (!response || !response.ok || !response.body) {
+    const finalError = lastError || new Error("Failed to receive stream response from OpenRouter API.");
+    console.error("[OpenRouter Final Failure] All request attempts failed.", finalError.message);
+    throw finalError;
   }
-
-  console.log(`[OpenRouter Response] Received HTTP 200 OK stream in ${Date.now() - startTime}ms. Piping text chunks...`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -126,7 +160,7 @@ export async function streamChatCompletion({
                   controller.enqueue(new TextEncoder().encode(deltaContent));
                 }
               } catch (e) {
-                // Ignore parse errors on partial chunks
+                // Ignore parse errors on partial JSON chunks
               }
             }
           }
@@ -141,8 +175,6 @@ export async function streamChatCompletion({
 
   return {
     stream,
-    getFullText: async () => {
-      return fullAccumulatedText;
-    },
+    getFullText: async () => fullAccumulatedText,
   };
 }
