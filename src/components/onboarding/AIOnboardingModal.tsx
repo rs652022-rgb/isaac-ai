@@ -16,7 +16,14 @@ import {
   Rocket,
   ShieldCheck,
   BrainCircuit,
-  Lock
+  Command,
+  Mic,
+  Cpu,
+  Layers,
+  Target,
+  FileCheck,
+  Building2,
+  Users
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-context";
 import { useFounderGraph } from "@/lib/graph/graph-memory";
@@ -46,7 +53,7 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
     {
       id: "msg_init",
       sender: "ai",
-      text: "👋 Welcome to Isaac OS.\n\nI'm your AI Co-Founder.\n\nI'll help you build and grow your startup from idea to scale.\n\nLet's start with one simple question.\n\nWhat are you building?",
+      text: "👋 Welcome to Isaac OS.\n\nI'm your AI Co-Founder.\n\nI'll help you build and grow your startup from Day 0 idea validation to Delaware incorporation, pitch decks, and seed funding.\n\nTo initialize your Founder Graph Memory: **What startup idea or problem are you building today?**",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -82,6 +89,34 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
     const filledCount = fields.filter((f) => f && f.toString().trim().length > 0).length;
     return Math.min(100, Math.max(15, Math.round(15 + (filledCount / fields.length) * 85)));
   };
+
+  // Categorized Templates
+  const templateCategories = [
+    {
+      id: "ai",
+      label: "AI & B2B SaaS",
+      prompt: "Building an Autonomous AI Workflow Agent for B2B Enterprise Operations",
+      icon: "🤖",
+    },
+    {
+      id: "fintech",
+      label: "Fintech & Payments",
+      prompt: "E-Commerce Micro-Lending API and Cross-Border Treasury Protocol",
+      icon: "💳",
+    },
+    {
+      id: "health",
+      label: "Healthcare & Bio",
+      prompt: "AI-Powered Clinical Trial Workflow and Medical Records Platform",
+      icon: "🧬",
+    },
+    {
+      id: "devtools",
+      label: "Developer Tools",
+      prompt: "Real-time Edge API Performance Optimization Engine for Cloud Engineers",
+      icon: "⚡",
+    },
+  ];
 
   // Process user response & generate streaming AI response
   const handleSendMessage = async (textToSend?: string) => {
@@ -197,7 +232,7 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
         },
       ]);
       setIsFinished(true);
-    } finally {
+    } font-sans finally {
       setIsTyping(false);
     }
   };
@@ -210,6 +245,15 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
 
   if (!isOpen) return null;
 
+  // Determine current stage index based on profile completeness
+  const currentStageIndex = completeness < 30 ? 0 : completeness < 55 ? 1 : completeness < 80 ? 2 : 3;
+  const stages = [
+    { label: "1. Founder Profile", active: currentStageIndex >= 0 },
+    { label: "2. Idea Core", active: currentStageIndex >= 1 },
+    { label: "3. ICP & Market", active: currentStageIndex >= 2 },
+    { label: "4. Stage 1 Roadmap", active: currentStageIndex >= 3 },
+  ];
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
@@ -219,58 +263,78 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-3xl"
+          className="absolute inset-0 bg-black/85 backdrop-blur-3xl"
         />
 
-        {/* Fullscreen/Modal Card */}
+        {/* Centered Modal Container (Max Width: 1000px / max-w-5xl) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-4xl h-[88vh] sm:h-[85vh] bg-[#0c0d12]/95 border border-white/15 rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] backdrop-blur-3xl flex flex-col overflow-hidden text-white"
+          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-5xl h-[90vh] sm:h-[86vh] bg-[#090a0f] border border-white/10 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,0.95)] backdrop-blur-3xl flex flex-col overflow-hidden text-white z-10"
         >
-          {/* 1. Modal Top Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/[0.02]">
+          {/* 1. Header Navigation Bar */}
+          <div className="px-6 py-4 border-b border-white/[0.08] bg-black/60 backdrop-blur-xl flex items-center justify-between gap-4 shrink-0">
+            {/* Logo Mark & Status */}
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20">
-                <div className="w-full h-full bg-black rounded-[10px] flex items-center justify-center font-bold text-xs">
-                  IS
-                </div>
+              <div className="w-9 h-9 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-xs shrink-0 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                IS
               </div>
-
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-bold tracking-wide">Isaac AI Co-Founder</span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  <span className="text-sm font-bold tracking-tight text-white font-sans">
+                    ISAAC<span className="text-neutral-500 font-light">.OS</span>
+                  </span>
+                  <span className="hidden sm:flex items-center space-x-1.5 px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-[10px] font-mono text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span>Live Graph Sync</span>
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-400 font-mono">Autonomous Founder Onboarding & Memory Sync</p>
+                <p className="text-[10px] text-neutral-400 font-mono hidden md:block">
+                  Autonomous Founder Onboarding & Memory Engine
+                </p>
               </div>
             </div>
 
-            {/* Completeness Progress & Actions */}
+            {/* Multi-Stage Tracker Bar */}
+            <div className="hidden lg:flex items-center space-x-3 bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-full">
+              {stages.map((stg, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <span
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                      stg.active
+                        ? "bg-white text-black font-extrabold"
+                        : "text-neutral-500 bg-white/5"
+                    }`}
+                  >
+                    {stg.label}
+                  </span>
+                  {i < stages.length - 1 && <span className="text-neutral-600 text-[10px]">→</span>}
+                </div>
+              ))}
+            </div>
+
+            {/* Completeness Bar & Action Controls */}
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">Profile Completeness</span>
-                <div className="flex items-center space-x-2 mt-0.5">
-                  <div className="w-28 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${completeness}%` }}
-                      transition={{ duration: 0.5 }}
-                      className="h-full bg-gradient-to-r from-cyan-400 via-indigo-500 to-emerald-400"
-                    />
-                  </div>
-                  <span className="text-xs font-mono font-bold text-cyan-300">{completeness}%</span>
+              <div className="flex flex-col items-end">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-widest">Completeness</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">{completeness}%</span>
+                </div>
+                <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden mt-1">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${completeness}%` }}
+                    transition={{ duration: 0.5 }}
+                    className="h-full bg-gradient-to-r from-emerald-400 via-white to-indigo-400"
+                  />
                 </div>
               </div>
 
               <button
                 onClick={handleCompleteAndEnterDashboard}
-                className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-neutral-300 transition-all"
+                className="hidden sm:flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-neutral-300 transition-all cursor-pointer"
               >
                 <span>Skip to OS</span>
                 <ArrowRight className="w-3 h-3 text-neutral-400" />
@@ -278,110 +342,172 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
 
               <button
                 onClick={onClose}
-                className="p-2 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-400 hover:text-white transition-all"
+                className="p-2 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer"
+                title="Close Onboarding Modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* 2. Main Chat Conversation Stream */}
+          {/* 2. Main Executive Stream Area */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 scroll-smooth">
+            {/* System Onboarding Briefing Card (Welcome Screen) */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-transparent backdrop-blur-xl space-y-5 shadow-2xl relative overflow-hidden"
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center space-x-2 text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span>ISAAC OS :: SYSTEM ONBOARDING BRIEFING</span>
+                </div>
+                <div className="flex items-center space-x-2 text-[10px] font-mono text-neutral-400">
+                  <span>Estimated Time: ~3 mins</span>
+                  <span>•</span>
+                  <span>25 AI Agents Ready</span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-extrabold text-white tracking-tight">
+                  Welcome to Isaac Founder OS
+                </h3>
+                <p className="text-xs text-neutral-300 mt-1.5 leading-relaxed font-sans max-w-3xl">
+                  Autonomous C-Suite intelligence guiding entrepreneurs from Day 0 idea validation to Delaware C-Corp incorporation, technical PRDs, 3-year financial models, and VC pitch grilling.
+                </p>
+              </div>
+
+              {/* 4 Capabilities Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                <div className="p-3.5 rounded-xl border border-white/10 bg-black/40 space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                    <Target className="w-4 h-4 text-emerald-400" />
+                    <span>Idea Validation</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 font-mono">YC partner challenge mode & SWOT matrix.</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-white/10 bg-black/40 space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                    <FileCheck className="w-4 h-4 text-cyan-400" />
+                    <span>Legal & Compliance</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 font-mono">Delaware C-Corp, vesting & 83(b) tax docs.</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-white/10 bg-black/40 space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                    <Building2 className="w-4 h-4 text-amber-400" />
+                    <span>Grant Engine</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 font-mono">AI matching for non-dilutive government funds.</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-white/10 bg-black/40 space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                    <Users className="w-4 h-4 text-indigo-400" />
+                    <span>Investor CRM</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 font-mono">Pitch deck reviews & VC check matching.</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Conversation Stream Messages */}
             {messages.map((msg) => (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
                 className={`flex space-x-3.5 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.sender === "ai" && (
-                  <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0 text-cyan-300 mt-1">
-                    <Bot className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-xs shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)] mt-1">
+                    IS
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] sm:max-w-[75%] p-4 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[88%] sm:max-w-[80%] p-5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                     msg.sender === "user"
-                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-tr-none shadow-md shadow-indigo-600/20"
-                      : "bg-white/[0.04] border border-white/10 text-neutral-200 rounded-tl-none backdrop-blur-md"
+                      ? "bg-white text-black font-medium rounded-tr-none shadow-md"
+                      : "bg-[#0d0e14] border border-white/10 text-neutral-200 rounded-tl-none shadow-xl"
                   }`}
                 >
+                  <div className="flex items-center justify-between mb-2 pb-1 border-b border-white/5 text-[10px] font-mono text-neutral-400">
+                    <span className={msg.sender === "user" ? "text-neutral-700 font-bold" : "text-emerald-400 font-bold"}>
+                      {msg.sender === "user" ? "Founder" : "Isaac AI Co-Founder"}
+                    </span>
+                    <span className={msg.sender === "user" ? "text-neutral-500" : "text-neutral-500"}>
+                      {msg.timestamp}
+                    </span>
+                  </div>
                   <p className="whitespace-pre-wrap">{msg.text}</p>
-                  <span className="block text-[10px] text-neutral-400 font-mono mt-2 text-right opacity-60">
-                    {msg.timestamp}
-                  </span>
                 </div>
 
                 {msg.sender === "user" && (
-                  <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-300 mt-1">
-                    <UserIcon className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-white/15 flex items-center justify-center shrink-0 text-white text-xs mt-1">
+                    👤
                   </div>
                 )}
               </motion.div>
             ))}
 
+            {/* Thinking / Synthesizing State */}
             {isTyping && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex space-x-3 items-center">
-                <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-cyan-300">
-                  <Bot className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-xs shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                  IS
                 </div>
-                <div className="px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center space-x-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="px-4 py-3 rounded-2xl bg-[#0d0e14] border border-white/10 flex items-center space-x-2 text-xs font-mono text-neutral-300">
+                  <Cpu className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                  <span>Synthesizing founder context & graph memory...</span>
                 </div>
               </motion.div>
             )}
 
-            {/* Generated Profile & Value Delivery Card upon completion */}
+            {/* Generated Profile & Stage Roadmap Card upon completion */}
             {isFinished && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-purple-950/20 to-black border border-indigo-500/30 backdrop-blur-2xl space-y-4 my-4 shadow-xl"
+                className="p-6 rounded-2xl bg-neutral-950 border border-white/15 backdrop-blur-2xl space-y-4 my-4 shadow-2xl"
               >
                 <div className="flex items-center space-x-2 text-emerald-400">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <h4 className="text-base font-bold text-white">Your Personalized Startup Profile & Roadmap Are Ready!</h4>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <h4 className="text-base font-bold text-white">Your Stage 1 Founder Profile & Roadmap Are Synchronized!</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                     <span className="text-[10px] font-mono text-neutral-400 uppercase">Stage 1 Readiness</span>
-                    <p className="text-xl font-extrabold text-cyan-300 mt-1">88 / 100</p>
+                    <p className="text-xl font-extrabold text-white mt-1">88 / 100</p>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                     <span className="text-[10px] font-mono text-neutral-400 uppercase">Target Industry</span>
-                    <p className="text-sm font-bold text-white mt-1 truncate">{extractedData.industry || "B2B AI SaaS"}</p>
+                    <p className="text-xs font-bold text-white mt-1 truncate">{extractedData.industry || "B2B AI SaaS"}</p>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                     <span className="text-[10px] font-mono text-neutral-400 uppercase">Graph Memory Status</span>
-                    <p className="text-sm font-bold text-emerald-400 mt-1">Active Sync</p>
+                    <p className="text-xs font-bold text-emerald-400 mt-1">Active Sync</p>
                   </div>
                 </div>
 
-                {showSignupPrompt && (
-                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 flex items-start space-x-3">
-                    <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-white">Your startup roadmap is generated.</p>
-                      <p className="text-neutral-300 mt-0.5">Create a free Isaac account to save your progress and access 25+ AI Co-Founders.</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <div className="pt-2">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCompleteAndEnterDashboard}
-                    className="w-full sm:w-auto flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 text-white text-sm font-bold flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/25 cursor-pointer"
+                    className="w-full py-3 px-6 rounded-xl bg-white hover:bg-neutral-200 text-black text-xs font-extrabold flex items-center justify-center space-x-2 shadow-lg shadow-white/10 cursor-pointer"
                   >
-                    <Rocket className="w-4 h-4" />
+                    <Rocket className="w-4 h-4 text-black" />
                     <span>Enter Isaac OS Dashboard</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 text-black" />
                   </motion.button>
                 </div>
               </motion.div>
@@ -390,61 +516,79 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 3. Suggestion Quick Chips */}
+          {/* 3. Categorized Startup Template Grid */}
           {messages.length <= 2 && (
-            <div className="px-6 py-2 flex items-center space-x-2 overflow-x-auto scrollbar-none border-t border-white/5 bg-white/[0.01]">
-              <span className="text-[10px] font-mono text-neutral-400 uppercase shrink-0">Suggestions:</span>
-              {[
-                "Building an AI B2B SaaS platform",
-                "Mobile healthcare app for doctors",
-                "E-commerce automation API",
-                "Fintech micro-lending engine"
-              ].map((chip, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(chip)}
-                  className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-neutral-300 whitespace-nowrap transition-all"
-                >
-                  {chip}
-                </button>
-              ))}
+            <div className="px-6 py-3 border-t border-white/[0.08] bg-black/40 space-y-2 shrink-0">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 uppercase tracking-widest">
+                <span>STARTUP TEMPLATE SUGGESTIONS</span>
+                <span>Click to Select</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {templateCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleSendMessage(cat.prompt)}
+                    className="p-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 text-left transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm">{cat.icon}</span>
+                      <span className="text-xs font-bold text-white group-hover:text-neutral-200">{cat.label}</span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 line-clamp-1 font-mono mt-1">
+                      {cat.prompt}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* 4. Chat Input Controls */}
-          <div className="p-4 border-t border-white/10 bg-white/[0.02]">
+          {/* 4. Linear/Perplexity Command Interface Composer */}
+          <div className="p-4 sm:p-5 border-t border-white/[0.08] bg-black/80 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="relative flex items-center"
+              className="p-2 rounded-2xl border border-white/12 bg-[#0a0b10] focus-within:border-white/30 focus-within:shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all flex items-center justify-between gap-3"
             >
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Type your startup details or answer Isaac's question..."
-                className="w-full pl-5 pr-28 py-3.5 rounded-2xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans"
+                className="flex-1 px-4 py-2 bg-transparent text-white placeholder-neutral-500 text-xs sm:text-sm focus:outline-none font-sans"
               />
 
-              <div className="absolute right-2 flex items-center space-x-1">
+              <div className="flex items-center space-x-2 shrink-0">
                 <button
                   type="button"
-                  className="p-2 rounded-xl text-neutral-400 hover:text-white transition-colors"
+                  className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                   title="Upload Pitch Deck or PRD"
                 >
                   <Paperclip className="w-4 h-4" />
                 </button>
+                <button
+                  type="button"
+                  className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors hidden sm:block"
+                  title="Voice Input (AI Voice Agent)"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+
+                <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded border border-white/10 bg-black text-[9px] font-mono text-neutral-400">
+                  <Command className="w-2.5 h-2.5" /> ↵
+                </kbd>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   type="submit"
                   disabled={!inputMessage.trim() || isTyping}
-                  className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-all shadow-md shadow-indigo-600/30 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white text-black font-extrabold text-xs disabled:opacity-40 hover:bg-neutral-200 transition-all flex items-center space-x-1.5 cursor-pointer shadow-md"
                 >
-                  <Send className="w-4 h-4" />
+                  <span>Send</span>
+                  <Send className="w-3.5 h-3.5 text-black" />
                 </motion.button>
               </div>
             </form>
