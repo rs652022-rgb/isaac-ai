@@ -30,6 +30,7 @@ const DarkVeil = dynamic(() => import("@/components/background/DarkVeil"), {
 
 import { useRouter } from "next/navigation";
 import { HeroBackground } from "@/components/background/HeroBackground";
+import { NeuralBackgroundCanvas } from "@/components/background/NeuralBackgroundCanvas";
 import {
   AgentsMeshBackground,
   FeaturesBackground,
@@ -67,6 +68,9 @@ export function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black font-sans">
+      {/* 60 FPS GPU-Accelerated Neural Background Canvas */}
+      <NeuralBackgroundCanvas opacity={0.08} />
+
       {/* DarkVeil WebGL Background Shader */}
       <div className="fixed inset-0 pointer-events-none -z-20">
         <DarkVeil
