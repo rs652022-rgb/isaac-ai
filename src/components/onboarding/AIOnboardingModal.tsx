@@ -232,7 +232,7 @@ export function AIOnboardingModal({ isOpen, onClose }: AIOnboardingModalProps) {
         },
       ]);
       setIsFinished(true);
-    } font-sans finally {
+    } finally {
       setIsTyping(false);
     }
   };
