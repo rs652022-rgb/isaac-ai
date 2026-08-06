@@ -1,5 +1,5 @@
-import { BusinessMetrics, FounderProfile } from "@/types";
-import { IdeaValidationData } from "@/types/founder-os";
+import { FounderProfile } from "@/types";
+import { BusinessMetrics, IdeaValidationData } from "@/types/founder-os";
 
 export interface ExtractedFacts {
   businessName?: string;

@@ -1,5 +1,5 @@
-import { BusinessMetrics, FounderProfile } from "@/types";
-import { ComplianceDoc, GrantScheme, InvestorProfile, IdeaValidationData } from "@/types/founder-os";
+import { FounderProfile } from "@/types";
+import { BusinessMetrics, ComplianceDoc, GrantScheme, InvestorProfile, IdeaValidationData } from "@/types/founder-os";
 
 export interface ComputedEngineResults {
   metrics: BusinessMetrics;
