@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getAgentSystemPrompt } from "@/lib/ai/systemPrompt";
+import { validateOpenRouterKey } from "@/lib/ai/provider";
 import { streamChatCompletion, ChatMessagePayload } from "@/lib/ai/chat";
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   console.log(`[Chat API] Incoming POST request at ${new Date().toISOString()}`);
+
+  // Validate OpenRouter API key presence server-side before execution
+  const keyValidation = validateOpenRouterKey();
+  if (!keyValidation.isValid) {
+    console.error("[Chat API Error] Aborting chat request due to missing OPENROUTER_API_KEY.");
+    return NextResponse.json(
+      { error: keyValidation.error },
+      { status: 500 }
+    );
+  }
 
   try {
     const body = await req.json().catch((err) => {

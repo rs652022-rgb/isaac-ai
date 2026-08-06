@@ -13,8 +13,8 @@ export interface StreamChatOptions {
 }
 
 /**
- * Initiates a streaming completion request to OpenRouter (Qwen 3 by default).
- * Returns a Response object wrapping a ReadableStream for SSE chunk forwarding.
+ * Initiates a streaming completion request to OpenRouter.
+ * Endpoint: https://openrouter.ai/api/v1/chat/completions
  */
 export async function streamChatCompletion({
   messages,
@@ -24,10 +24,7 @@ export async function streamChatCompletion({
 }: StreamChatOptions): Promise<{ stream: ReadableStream; getFullText: () => Promise<string> }> {
   const config = getOpenRouterConfig();
 
-  if (!config.apiKey) {
-    throw new Error("OPENROUTER_API_KEY is not configured on the server.");
-  }
-
+  const activeModel = model || config.defaultModel;
   const formattedMessages: ChatMessagePayload[] = [];
 
   if (systemPrompt) {
@@ -39,6 +36,11 @@ export async function streamChatCompletion({
 
   formattedMessages.push(...messages);
 
+  console.log(`[OpenRouter Request] Dispatching completion to model "${activeModel}" via endpoint ${config.baseUrl}`);
+  console.log(`[OpenRouter Payload] ${formattedMessages.length} total messages in context payload.`);
+
+  const startTime = Date.now();
+
   const response = await fetch(config.baseUrl, {
     method: "POST",
     headers: {
@@ -48,7 +50,7 @@ export async function streamChatCompletion({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: model || config.defaultModel,
+      model: activeModel,
       messages: formattedMessages,
       temperature,
       stream: true,
@@ -57,13 +59,36 @@ export async function streamChatCompletion({
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("[OpenRouter Error]", response.status, errorText);
-    throw new Error(`OpenRouter API request failed with status ${response.status}: ${errorText}`);
+    console.error(`[OpenRouter HTTP Error ${response.status}] Request failed in ${Date.now() - startTime}ms.`);
+    console.error(`[OpenRouter Error Details]:`, errorText);
+
+    let parsedErrorMsg = errorText;
+    try {
+      const errorJson = JSON.parse(errorText);
+      parsedErrorMsg = errorJson.error?.message || errorJson.message || errorText;
+    } catch {
+      // Use raw text if not JSON
+    }
+
+    if (response.status === 401) {
+      throw new Error(`[OpenRouter 401 Unauthorized] Invalid OPENROUTER_API_KEY. Please verify your API key in .env. (${parsedErrorMsg})`);
+    } else if (response.status === 402) {
+      throw new Error(`[OpenRouter 402 Payment Required] Your OpenRouter account has insufficient credits. (${parsedErrorMsg})`);
+    } else if (response.status === 404) {
+      throw new Error(`[OpenRouter 404 Not Found] Model "${activeModel}" was not found on OpenRouter. (${parsedErrorMsg})`);
+    } else if (response.status === 429) {
+      throw new Error(`[OpenRouter 429 Rate Limited] API rate limit exceeded. (${parsedErrorMsg})`);
+    } else {
+      throw new Error(`OpenRouter API request failed (${response.status}): ${parsedErrorMsg}`);
+    }
   }
 
   if (!response.body) {
+    console.error("[OpenRouter Error] Response body is null.");
     throw new Error("OpenRouter API returned an empty response body.");
   }
+
+  console.log(`[OpenRouter Response] Received HTTP 200 OK stream in ${Date.now() - startTime}ms. Piping text chunks...`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -108,6 +133,7 @@ export async function streamChatCompletion({
         }
         controller.close();
       } catch (err) {
+        console.error("[OpenRouter Stream Decoding Error]", err);
         controller.error(err);
       }
     },
@@ -116,7 +142,6 @@ export async function streamChatCompletion({
   return {
     stream,
     getFullText: async () => {
-      // If consumer reads the stream to end, this returns full text
       return fullAccumulatedText;
     },
   };
