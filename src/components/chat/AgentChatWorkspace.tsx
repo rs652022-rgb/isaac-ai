@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "@/lib/store/app-context";
 
 import { GlowingButton } from "@/components/ui/GlowingButton";
+import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
 import { AI_AGENTS } from "@/lib/agents/agent-registry";
 
 import {
@@ -140,7 +141,11 @@ export function AgentChatWorkspace() {
                         : "glass-card text-neutral-200 border-white/10"
                     }`}
                   >
-                    <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                    ) : (
+                      <MarkdownRenderer content={msg.content} isStreaming={msg.isStreaming} />
+                    )}
 
                     {/* Reasoning Accordion */}
                     {!isUser && msg.reasoning && (

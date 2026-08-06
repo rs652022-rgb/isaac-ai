@@ -19,6 +19,8 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
+  conversations Conversation[]
+  messages      Message[]
 }
 
 model Account {
@@ -55,3 +57,33 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Conversation {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  agentId   String    @default("orchestrator") @map("agent_id")
+  title     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  conversationId String       @map("conversation_id")
+  role           String       // 'user' | 'assistant' | 'system'
+  content        String       @db.Text
+  agentId        String?      @map("agent_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+

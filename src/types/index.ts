@@ -67,6 +67,7 @@ export interface AgentMessage {
   reasoning?: string[];
   suggestedActions?: string[];
   action?: "login";
+  isStreaming?: boolean;
   artifacts?: {
     type: "score" | "document" | "roadmap" | "code" | "chart" | "checklist";
     title: string;

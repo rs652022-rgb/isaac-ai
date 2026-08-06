@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "@/lib/store/app-context";
 import { GlowingButton } from "@/components/ui/GlowingButton";
+import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Send, Cpu, ArrowRight, Brain, ChevronUp, ChevronDown, Paperclip, Mic, Lightbulb, TrendingUp, Target, LineChart, Search, CircleDollarSign } from "lucide-react";
 
@@ -191,7 +192,11 @@ export function ConversationalOnboarding() {
                         : "bg-white/[0.03] backdrop-blur-md border border-white/[0.08] text-neutral-200 rounded-tl-sm"
                     }`}
                   >
-                    <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                    ) : (
+                      <MarkdownRenderer content={msg.content} isStreaming={msg.isStreaming} />
+                    )}
 
                     {/* Reasoning Accordion */}
                     {!isUser && msg.reasoning && msg.reasoning.length > 0 && (

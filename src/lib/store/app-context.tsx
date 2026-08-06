@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, FounderProfile, AgentMessage, AIAgent, StartupScores, RoadmapTask, GeneratedDocument, Role } from "@/types";
 import { AI_AGENTS, analyzeStartupIdea } from "@/lib/agents/agent-registry";
 import { useSession } from "next-auth/react";
@@ -21,6 +21,7 @@ interface AppContextType {
   documents: GeneratedDocument[];
   addDocument: (doc: GeneratedDocument) => void;
   isThinking: boolean;
+  activeConversationId: string | null;
 }
 
 const EMPTY_PROFILE: FounderProfile = {
@@ -67,8 +68,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     createdAt: new Date().toISOString()
   } : null;
 
-  // We provide a no-op setUser to not break existing components if they call it, 
-  // though they should really use signIn/signOut from next-auth/react
   const setUser = () => {};
 
   const [founderProfile, setFounderProfile] = useState<FounderProfile>(EMPTY_PROFILE);
@@ -77,6 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [roadmapTasks, setRoadmapTasks] = useState<RoadmapTask[]>(INITIAL_ROADMAP);
   const [documents, setDocuments] = useState<GeneratedDocument[]>(INITIAL_DOCUMENTS);
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<AgentMessage[]>([
     {
@@ -84,10 +84,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sender: "orchestrator",
       senderName: "Isaac",
       avatar: "🤖",
-      content: "Hey there. I'm Isaac, your AI Co-Founder. Before we generate your dashboards and roadmaps, let's validate your startup idea. \n\nFirst, what specific problem are you trying to solve?",
+      content: "Hey there! I'm Isaac, your AI Co-Founder. Before we generate your dashboards and roadmaps, let's validate your startup idea.\n\nFirst, what specific problem are you trying to solve?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
   ]);
+
+  // Requirement 9: Load previous conversation history from Supabase on mount / agent switch
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHistory() {
+      try {
+        const res = await fetch(`/api/chat/history?agentId=${selectedAgent.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isMounted && data.messages && data.messages.length > 0) {
+          setMessages(data.messages);
+          if (data.conversationId) {
+            setActiveConversationId(data.conversationId);
+          }
+        }
+      } catch (err) {
+        console.warn("[App Context] Failed to fetch past conversation history:", err);
+      }
+    }
+    loadHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedAgent.id]);
 
   const updateFounderProfile = (updates: Partial<FounderProfile>) => {
     setFounderProfile((prev) => {
@@ -112,6 +136,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const sendMessage = async (text: string, targetAgentId?: string) => {
+    const activeAgentId = targetAgentId || selectedAgent.id;
+    const activeAgent = AI_AGENTS.find((a) => a.id === activeAgentId) || selectedAgent;
+
     const userMsg: AgentMessage = {
       id: `msg_${Date.now()}`,
       sender: "user",
@@ -124,69 +151,89 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
 
-    setTimeout(() => {
-      let replyContent = "";
-      let reasoning: string[] = [];
-      let action: "login" | undefined;
-      
-      // Onboarding conversational flow (if on onboarding route)
-      if (typeof window !== "undefined" && window.location.pathname === "/onboarding") {
-        const userMsgCount = messages.filter(m => m.sender === "user").length + 1;
-        
-        if (userMsgCount === 1) {
-          updateFounderProfile({ problem: text });
-          replyContent = "Got it. That's a solid problem space. Now, how are you solving it? What is your solution or product?";
-          reasoning = ["Extracted 'problem' from response.", "Moving to 'solution' extraction."];
-        } else if (userMsgCount === 2) {
-          updateFounderProfile({ solution: text });
-          replyContent = "Interesting approach. Who exactly is your target audience? Be as specific as possible (e.g., B2B SaaS founders, Gen-Z creators).";
-          reasoning = ["Extracted 'solution' from response.", "Moving to 'targetAudience' extraction."];
-        } else if (userMsgCount === 3) {
-          updateFounderProfile({ targetAudience: text });
-          replyContent = "Makes sense. How do you plan to make money? What is your business or revenue model?";
-          reasoning = ["Extracted 'targetAudience' from response.", "Moving to 'businessModel' extraction."];
-        } else if (userMsgCount === 4) {
-          updateFounderProfile({ businessModel: text, startupName: "My Awesome Startup" });
-          replyContent = "You're making great progress. I have enough context to run a preliminary analysis and generate your personalized Founder Dashboard, roadmaps, and SWOT analysis.\n\nLet's generate your Dashboard.";
-          reasoning = ["Extracted 'businessModel' from response.", "Sufficient profile data gathered.", "Triggering dashboard generation."];
-          action = "login"; // Reusing "login" action flag for now, handled as GoToDashboard by the component
-        } else {
-          replyContent = "Ready to proceed to your dashboard.";
-          action = "login";
-          if (typeof window !== "undefined") window.location.href = "/dashboard";
-        }
-      } else {
-        // Dashboard / Logged-in experience
-        const activeAgent = AI_AGENTS.find((a) => a.id === targetAgentId) || selectedAgent;
-        if (activeAgent.id === "devils_advocate") {
-          replyContent = `**Devil's Advocate Direct Reality Check:**\n1. You claim your target audience is ${founderProfile.targetAudience || 'broad'}, but charging ${founderProfile.pricing || 'without proving ROI'} will result in high churn.\n2. Have you accounted for API rate limits and token cost spikes during multi-agent loops?\n3. **Recommendation:** Offer a 14-day free trial locked to 3 document generations to convert users upfront.`;
-          reasoning = ["Stress-tested pricing elasticity", "Evaluated unit economics of API token consumption"];
-        } else if (activeAgent.id === "cto_architect") {
-          replyContent = `**CTO Technical Directive:**\nFor our MVP, we recommend **Next.js 14 (App Router) + PostgreSQL (Prisma) + Redis (Upstash for Rate Limiting) + Vercel AI SDK**. Keep agent execution async with Server Actions to avoid server timeouts.`;
-          reasoning = ["Evaluated framework latency", "Selected zero-cold-start database provider"];
-        } else if (activeAgent.id === "legal_advisor") {
-          replyContent = `**Legal & Compliance Advice:**\nIf you plan to raise US venture capital, incorporate as a **Delaware C-Corp**. Ensure all founders sign a 4-year vesting schedule with a 1-year cliff and complete 83(b) tax elections within 30 days of stock issuance.`;
-          reasoning = ["Checked US VC standard legal requirements", "Identified 83(b) deadline risk"];
-        } else {
-          replyContent = `**${activeAgent.name} Analysis:**\nI have evaluated "${text}" against our startup profile. I recommend disassembling this into actionable sprint items on your roadmap.`;
-          reasoning = ["Cross-referenced persistent memory", "Aligned directive with growth KPI"];
-        }
+    // Update founder profile during conversational onboarding
+    if (typeof window !== "undefined" && window.location.pathname === "/onboarding") {
+      const userMsgCount = messages.filter((m) => m.sender === "user").length + 1;
+      if (userMsgCount === 1) updateFounderProfile({ problem: text });
+      else if (userMsgCount === 2) updateFounderProfile({ solution: text });
+      else if (userMsgCount === 3) updateFounderProfile({ targetAudience: text });
+      else if (userMsgCount === 4) updateFounderProfile({ businessModel: text, startupName: "My Startup" });
+    }
+
+    const assistantMsgId = `msg_${Date.now() + 1}`;
+    const assistantMsg: AgentMessage = {
+      id: assistantMsgId,
+      sender: activeAgent.id,
+      senderName: activeAgent.name,
+      avatar: activeAgent.avatar,
+      content: "",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: text,
+          conversationId: activeConversationId || undefined,
+          agentId: activeAgentId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorJson = await res.json().catch(() => ({}));
+        throw new Error(errorJson.error || `Server responded with status ${res.status}`);
       }
 
-      const agentMsg: AgentMessage = {
-        id: `msg_${Date.now() + 1}`,
-        sender: (!user) ? "orchestrator" : (targetAgentId || selectedAgent.id),
-        senderName: (!user) ? "Isaac" : (AI_AGENTS.find((a) => a.id === targetAgentId)?.name || selectedAgent.name),
-        avatar: (!user) ? "🤖" : (AI_AGENTS.find((a) => a.id === targetAgentId)?.avatar || selectedAgent.avatar),
-        content: replyContent,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        reasoning,
-        action
-      };
+      const returnedConvId = res.headers.get("X-Conversation-Id");
+      if (returnedConvId) {
+        setActiveConversationId(returnedConvId);
+      }
 
-      setMessages((prev) => [...prev, agentMsg]);
+      if (!res.body) {
+        throw new Error("No response stream body received.");
+      }
+
+      // Add placeholder assistant message and stop thinking indicator
+      setMessages((prev) => [...prev, assistantMsg]);
       setIsThinking(false);
-    }, 1200);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedText += chunk;
+
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantMsgId ? { ...m, content: accumulatedText } : m))
+        );
+      }
+    } catch (err: any) {
+      console.error("[sendMessage API Error]", err);
+      setIsThinking(false);
+
+      const fallbackText = err.message?.includes("OPENROUTER_API_KEY")
+        ? `⚠️ **OpenRouter API Key Missing:** Please add \`OPENROUTER_API_KEY\` to your \`.env\` file to enable real AI assistant responses.`
+        : `⚠️ **AI Co-Founder Service Alert:** ${err.message || "Failed to stream response from AI model. Please try again."}`;
+
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== assistantMsgId),
+        {
+          id: `err_${Date.now()}`,
+          sender: activeAgent.id,
+          senderName: activeAgent.name,
+          avatar: "⚠️",
+          content: fallbackText,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
   };
 
   return (
@@ -206,7 +253,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         toggleTaskStatus,
         documents,
         addDocument,
-        isThinking
+        isThinking,
+        activeConversationId
       }}
     >
       {children}
