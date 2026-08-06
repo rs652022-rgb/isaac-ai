@@ -3,6 +3,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { StructuredVisualizer, StructuredPayload } from "./StructuredVisualizer";
 
 interface MarkdownRendererProps {
   content: string;
@@ -34,6 +35,45 @@ export function MarkdownRenderer({ content, isStreaming = false, className = "" 
               </blockquote>
             ),
             code: ({ inline, className, children, ...props }: any) => {
+              const match = /language-([^\s]+)/.exec(className || "");
+              const lang = match ? match[1] : "";
+              const rawCode = String(children).replace(/\n$/, "");
+
+              // Intercept structured JSON payloads and render rich UI components
+              if (
+                !inline &&
+                (lang === "json:structured" ||
+                  lang === "structured" ||
+                  lang === "json" ||
+                  rawCode.includes('"visualType"'))
+              ) {
+                try {
+                  const parsed: StructuredPayload = JSON.parse(rawCode);
+                  if (parsed && parsed.visualType && parsed.data) {
+                    return (
+                      <div className="my-2">
+                        {parsed.text && (
+                          <div className="mb-3 text-neutral-200 font-normal">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.text}</ReactMarkdown>
+                          </div>
+                        )}
+                        <StructuredVisualizer payload={parsed} />
+                      </div>
+                    );
+                  }
+                } catch {
+                  // Partial stream JSON, render smooth loading state until completion
+                  if (isStreaming) {
+                    return (
+                      <div className="my-3 p-4 rounded-xl border border-white/10 bg-white/[0.02] flex items-center space-x-2 font-mono text-[11px] text-neutral-400">
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+                        <span>Rendering visual component...</span>
+                      </div>
+                    );
+                  }
+                }
+              }
+
               if (inline) {
                 return (
                   <code className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[11px] text-amber-300 border border-white/10" {...props}>
@@ -41,6 +81,7 @@ export function MarkdownRenderer({ content, isStreaming = false, className = "" 
                   </code>
                 );
               }
+
               return (
                 <pre className="p-3 my-2.5 rounded-xl bg-neutral-950 border border-white/10 font-mono text-[11px] text-neutral-200 overflow-x-auto">
                   <code>{children}</code>
@@ -48,7 +89,7 @@ export function MarkdownRenderer({ content, isStreaming = false, className = "" 
               );
             },
             table: ({ children }) => (
-              <div className="overflow-x-auto my-3 border border-white/10 rounded-xl">
+              <div className="overflow-x-auto my-3 border border-white/10 rounded-xl bg-black/40">
                 <table className="min-w-full divide-y divide-white/10 text-[11px] text-neutral-300">{children}</table>
               </div>
             ),
