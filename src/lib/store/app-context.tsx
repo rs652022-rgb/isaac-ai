@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from "r
 import { User, FounderProfile, AgentMessage, AIAgent, StartupScores, RoadmapTask, GeneratedDocument, Role } from "@/types";
 import { AI_AGENTS, analyzeStartupIdea } from "@/lib/agents/agent-registry";
 import { useSession } from "next-auth/react";
+import { logBrowserStep, logBrowserError } from "@/lib/ai/logger";
 
 interface AppContextType {
   user: User | null;
@@ -91,12 +92,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   ]);
 
-  // Requirement 9 & 11: Load previous conversation history from Supabase safely
+  // Load previous conversation history from Supabase safely
   useEffect(() => {
     let isMounted = true;
     async function loadHistory() {
       try {
-        console.log(`[Isaac AI Browser Log] Fetching chat history for agent "${selectedAgent.id}"...`);
+        logBrowserStep("init", `Fetching chat history for agent "${selectedAgent.id}"...`);
         const res = await fetch(`/api/chat/history?agentId=${selectedAgent.id}`);
         if (!res.ok) return;
         const data = await res.json();
@@ -105,9 +106,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (data.conversationId) {
             setActiveConversationId(data.conversationId);
           }
+          logBrowserStep("init", `Loaded ${data.messages.length} historical messages from Supabase.`);
         }
       } catch (err) {
-        console.warn("[Isaac AI Browser Log] Failed to fetch past conversation history:", err);
+        logBrowserError("init", "Failed to fetch past conversation history", err);
       }
     }
     loadHistory();
@@ -140,7 +142,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = async (text: string, targetAgentId?: string) => {
     if (!text || !text.trim() || isThinking) {
-      console.warn("[Isaac AI Browser Log] Prevented duplicate send or empty input while thinking.");
+      logBrowserStep("send_blocked", "Prevented duplicate submission while thinking.");
       return;
     }
 
@@ -154,6 +156,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const activeAgentId = targetAgentId || selectedAgent.id;
     const activeAgent = AI_AGENTS.find((a) => a.id === activeAgentId) || selectedAgent;
 
+    const clientReqId = `ui_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const startTime = Date.now();
+
     const userMsg: AgentMessage = {
       id: `msg_${Date.now()}`,
       sender: "user",
@@ -165,6 +170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
+    logBrowserStep(clientReqId, `Request sent to /api/chat (Agent: ${activeAgentId}, Len: ${text.length})`);
 
     // Update founder profile during conversational onboarding
     if (typeof window !== "undefined" && window.location.pathname === "/onboarding") {
@@ -179,11 +185,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let hasCreatedAssistantMessage = false;
 
     try {
-      console.log(`[Isaac AI Browser Log] Dispatching prompt to /api/chat (Agent: ${activeAgentId})`);
-
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": clientReqId,
+        },
         body: JSON.stringify({
           content: text.trim(),
           conversationId: activeConversationId || undefined,
@@ -191,6 +198,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }),
         signal: controller.signal,
       });
+
+      const serverReqId = res.headers.get("X-Request-Id") || clientReqId;
+      logBrowserStep(serverReqId, `Response received (HTTP ${res.status} OK)`);
 
       if (!res.ok) {
         const errorJson = await res.json().catch(() => ({}));
@@ -219,9 +229,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           accumulatedText += chunk;
 
           if (!hasCreatedAssistantMessage) {
-            // First chunk received! Create assistant message in state and turn off loading indicator
+            // First chunk received! Log streaming started, create message bubble, and stop thinking indicator
             hasCreatedAssistantMessage = true;
             setIsThinking(false);
+            logBrowserStep(serverReqId, "Streaming started (First text chunk received)");
 
             const assistantMsg: AgentMessage = {
               id: assistantMsgId,
@@ -234,6 +245,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             };
 
             setMessages((prev) => [...prev, assistantMsg]);
+            logBrowserStep(serverReqId, "UI updated with initial assistant message container.");
           } else {
             // Stream chunks into assistant message content
             setMessages((prev) =>
@@ -244,10 +256,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       setIsThinking(false);
+      const totalTimeMs = Date.now() - startTime;
 
       if (!accumulatedText.trim()) {
-        // Never display an empty assistant bubble!
-        console.warn("[Isaac AI Browser Log] Stream completed with 0 text content. Rendering friendly fallback message.");
+        logBrowserError(serverReqId, "Stream completed with 0 text content", "Rendering friendly fallback message.");
         const fallbackText = "I'm sorry, I couldn't generate a response right now. Please try again.";
         if (hasCreatedAssistantMessage) {
           setMessages((prev) =>
@@ -268,18 +280,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ]);
         }
       } else {
-        // Mark message as non-streaming
+        logBrowserStep(serverReqId, `Streaming completed & UI updated (${accumulatedText.length} chars in ${totalTimeMs}ms)`);
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantMsgId ? { ...m, isStreaming: false } : m))
         );
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("[Isaac AI Browser Log] Pending request was cancelled by new action.");
+        logBrowserStep(clientReqId, "Fetch request aborted by new user action.");
         return;
       }
 
-      console.error("[Isaac AI Browser Error]", err);
+      logBrowserError(clientReqId, "Chat API Request Exception", err);
       setIsThinking(false);
 
       const errorMessage = err.message || "Failed to communicate with AI Assistant service.";

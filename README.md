@@ -22,8 +22,36 @@ cp .env.example .env
 | `DIRECT_URL` | Direct PostgreSQL Connection URL | `postgresql://postgres:pass@db.xxx.supabase.co:5432/postgres?sslmode=require` |
 | `AUTH_SECRET` | NextAuth secret key for session signing | `c5c833d0fb8181d8c60bbe8e932a438908eb62bdc192f8ff...` |
 | `AUTH_URL` | Application root URL | `http://localhost:3000` |
+| `AI_DEBUG` | Toggle detailed step-by-step pipeline logging | `true` or `false` |
 
 > ⚠️ **Security Warning**: `OPENROUTER_API_KEY` is strictly accessed server-side in Next.js Route Handlers (`/api/chat`) and is never exposed in client bundles or browser network requests.
+
+---
+
+## 🔍 Structured Observability & AI Debug System
+
+Set `AI_DEBUG=true` in `.env` to enable end-to-end request tracing across all 8 pipeline steps:
+
+```
+==================================================
+REQUEST ID: chat_172292100_a4b9
+STEP 1: User message received ✅ (Len: 42 chars)
+STEP 2: Conversation saved (38ms) | Conv ID: conv_172292100 ✅
+STEP 3: User message saved to database (14ms) ✅
+STEP 4: OpenRouter request sent (Model: qwen/qwen-2.5-72b-instruct) ✅
+STEP 5: Response received (1420ms) | HTTP 200 OK ✅
+STEP 6: Parsed AI response stream (480ms) | 642 total chars ✅
+STEP 7: Assistant message saved (22ms) | Msg ID: msg_172292104 ✅
+STEP 8: Streaming completed & sent to frontend ✅
+
+METRICS BREAKDOWN:
+- Database Time:    74ms
+- OpenRouter Time:  1420ms
+- Parsing Time:     480ms
+- Total Duration:   1974ms
+- Response Size:    642 chars
+==================================================
+```
 
 ---
 

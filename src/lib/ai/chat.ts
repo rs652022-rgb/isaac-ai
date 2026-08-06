@@ -1,4 +1,5 @@
 import { getOpenRouterConfig, DEFAULT_MODEL } from "./provider";
+import { RequestLogger } from "./logger";
 
 export interface ChatMessagePayload {
   role: "user" | "assistant" | "system";
@@ -11,6 +12,7 @@ export interface StreamChatOptions {
   model?: string;
   temperature?: number;
   timeoutMs?: number;
+  logger?: RequestLogger;
 }
 
 /**
@@ -23,6 +25,7 @@ export async function streamChatCompletion({
   model = DEFAULT_MODEL,
   temperature = 0.7,
   timeoutMs = 30000,
+  logger,
 }: StreamChatOptions): Promise<{ stream: ReadableStream; getFullText: () => Promise<string> }> {
   const config = getOpenRouterConfig();
   const activeModel = model || config.defaultModel;
@@ -36,7 +39,7 @@ export async function streamChatCompletion({
   }
   formattedMessages.push(...messages);
 
-  console.log(`[OpenRouter Request] Model: "${activeModel}" | Payload Messages: ${formattedMessages.length} | Timeout: ${timeoutMs}ms`);
+  logger?.logStep(4, "OpenRouter request sent", undefined, `Model: ${activeModel} | Context size: ${formattedMessages.length} msgs`);
 
   let response: Response | null = null;
   let lastError: Error | null = null;
@@ -45,7 +48,7 @@ export async function streamChatCompletion({
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      console.warn(`[OpenRouter Warning] Request attempt ${attempt} timed out after ${timeoutMs}ms. Aborting connection...`);
+      logger?.logWarning(4, "OpenRouter Timeout", `Attempt ${attempt} timed out after ${timeoutMs}ms.`);
       controller.abort();
     }, timeoutMs);
 
@@ -53,7 +56,8 @@ export async function streamChatCompletion({
 
     try {
       if (attempt > 1) {
-        console.warn(`[OpenRouter Retry] Initiating automatic retry (Attempt ${attempt}/${maxAttempts})...`);
+        logger?.incrementRetryCount();
+        logger?.logWarning(4, "OpenRouter Auto-Retry", `Retrying request to OpenRouter (Attempt ${attempt}/${maxAttempts})...`);
       }
 
       response = await fetch(config.baseUrl, {
@@ -74,13 +78,15 @@ export async function streamChatCompletion({
       });
 
       clearTimeout(timer);
+      const latencyMs = Date.now() - startTime;
 
       if (response.ok) {
-        console.log(`[OpenRouter Success] Attempt ${attempt} connected (HTTP 200) in ${Date.now() - startTime}ms.`);
+        logger?.setOpenRouterTime(latencyMs);
+        logger?.logStep(5, "Response received", latencyMs, `HTTP ${response.status} OK`);
         break; // Successfully connected!
       } else {
         const errorText = await response.text();
-        console.error(`[OpenRouter HTTP Error ${response.status}] Attempt ${attempt} failed in ${Date.now() - startTime}ms:`, errorText);
+        logger?.logError(4, `OpenRouter HTTP ${response.status} Error`, errorText);
 
         let parsedErrorMsg = errorText;
         try {
@@ -109,18 +115,17 @@ export async function streamChatCompletion({
       } else {
         lastError = err;
       }
-      console.error(`[OpenRouter Error] Attempt ${attempt} encountered error:`, lastError.message);
+      logger?.logError(4, `OpenRouter Connection Exception (Attempt ${attempt})`, lastError);
     }
 
     if (attempt < maxAttempts) {
-      // Short delay before retry
       await new Promise((resolve) => setTimeout(resolve, 600));
     }
   }
 
   if (!response || !response.ok || !response.body) {
     const finalError = lastError || new Error("Failed to receive stream response from OpenRouter API.");
-    console.error("[OpenRouter Final Failure] All request attempts failed.", finalError.message);
+    logger?.logError(4, "OpenRouter All Attempts Failed", finalError);
     throw finalError;
   }
 
@@ -167,7 +172,7 @@ export async function streamChatCompletion({
         }
         controller.close();
       } catch (err) {
-        console.error("[OpenRouter Stream Decoding Error]", err);
+        logger?.logError(6, "Stream Decoding Error", err);
         controller.error(err);
       }
     },

@@ -4,47 +4,51 @@ import { db } from "@/lib/db";
 import { getAgentSystemPrompt } from "@/lib/ai/systemPrompt";
 import { validateOpenRouterKey } from "@/lib/ai/provider";
 import { streamChatCompletion, ChatMessagePayload } from "@/lib/ai/chat";
+import { RequestLogger } from "@/lib/ai/logger";
 
 export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  console.log(`[Chat API] Incoming POST request at ${new Date().toISOString()}`);
+  // Extract custom Request ID from header or generate a new unique ID
+  const incomingReqId = req.headers.get("X-Request-Id");
+  const logger = new RequestLogger(incomingReqId || undefined);
 
   // Validate OpenRouter API key presence server-side before execution
   const keyValidation = validateOpenRouterKey();
   if (!keyValidation.isValid) {
-    console.error("[Chat API Error] Aborting chat request due to missing OPENROUTER_API_KEY.");
+    logger.logError(0, "OpenRouter Key Validation", keyValidation.error);
+    logger.logSummary(false);
     return NextResponse.json(
-      { error: keyValidation.error },
+      { error: keyValidation.error, requestId: logger.requestId },
       { status: 500 }
     );
   }
 
   try {
     const body = await req.json().catch((err) => {
-      console.error("[Chat API Error] Failed to parse JSON body:", err);
+      logger.logError(1, "JSON Body Parsing", err);
       return {};
     });
 
     const { content, conversationId: reqConversationId, agentId = "orchestrator" } = body;
 
     if (!content || typeof content !== "string" || !content.trim()) {
-      console.warn("[Chat API Warning] Validation failed: missing or empty content parameter.");
-      return NextResponse.json({ error: "Message content is required." }, { status: 400 });
+      logger.logWarning(1, "Input Validation", "Missing or empty content parameter.");
+      logger.logSummary(false);
+      return NextResponse.json({ error: "Message content is required.", requestId: logger.requestId }, { status: 400 });
     }
 
-    // 1. Authenticate user session safely
+    // 1. User message received
     let session = null;
     try {
       session = await auth();
     } catch (authErr: any) {
-      console.warn("[Chat API Warning] NextAuth session lookup failed:", authErr.message || authErr);
+      logger.logWarning(1, "Auth Session Lookup", authErr.message || String(authErr));
     }
 
-    // 2. Resolve User ID (DB lookups wrapped in try/catch for 100% fault tolerance)
     let userId = session?.user?.id;
     if (!userId) {
       const guestEmail = "guest@isaac.ai";
       try {
+        const dbStart = Date.now();
         let guestUser = await db.user.findUnique({ where: { email: guestEmail } });
         if (!guestUser) {
           guestUser = await db.user.create({
@@ -57,14 +61,23 @@ export async function POST(req: NextRequest) {
           });
         }
         userId = guestUser.id;
+        logger.addDatabaseTime(Date.now() - dbStart);
       } catch (dbUserErr: any) {
-        console.error("[Database Warning - User lookup failed]:", dbUserErr.message || dbUserErr);
+        logger.logWarning(1, "Guest User Database Resolution", dbUserErr.message || String(dbUserErr));
         userId = "guest_anon_" + Math.random().toString(36).substring(2, 9);
       }
     }
 
-    // 3. Resolve Conversation ID safely (DB lookups wrapped in try/catch)
+    logger.logStep(
+      1,
+      "User message received",
+      undefined,
+      `User ID: ${userId} | Message Length: ${content.length} chars`
+    );
+
+    // 2 & 3. Conversation save started & completed
     let conversationId = reqConversationId || `conv_${Date.now()}`;
+    const dbConvStart = Date.now();
     try {
       const existingConv = await db.conversation.findUnique({ where: { id: conversationId } });
       if (!existingConv) {
@@ -77,14 +90,18 @@ export async function POST(req: NextRequest) {
           },
         });
         conversationId = newConv.id;
-        console.log(`[Database Success] Created conversation ${conversationId} in Supabase.`);
       }
+      const dbConvMs = Date.now() - dbConvStart;
+      logger.addDatabaseTime(dbConvMs);
+      logger.logStep(2, "Conversation saved", dbConvMs, `Conv ID: ${conversationId}`);
     } catch (dbConvErr: any) {
-      console.error("[Database Warning - Conversation creation failed]:", dbConvErr.message || dbConvErr);
-      // Fallback: Proceed with client/generated conversationId without failing AI inference
+      const dbConvMs = Date.now() - dbConvStart;
+      logger.addDatabaseTime(dbConvMs);
+      logger.logWarning(2, "Conversation Storage Fallback", dbConvErr.message || String(dbConvErr));
     }
 
-    // 4. Save User Message into Supabase safely
+    // Save User Message into Supabase safely
+    const dbMsgStart = Date.now();
     try {
       await db.message.create({
         data: {
@@ -95,20 +112,27 @@ export async function POST(req: NextRequest) {
           agentId,
         },
       });
-      console.log(`[Database Success] Persisted user message for conversation ${conversationId}.`);
+      const dbMsgMs = Date.now() - dbMsgStart;
+      logger.addDatabaseTime(dbMsgMs);
+      logger.logStep(3, "User message saved to database", dbMsgMs);
     } catch (dbMsgErr: any) {
-      console.error("[Database Warning - User message storage failed]:", dbMsgErr.message || dbMsgErr);
-      // Fallback: Continue execution smoothly
+      const dbMsgMs = Date.now() - dbMsgStart;
+      logger.addDatabaseTime(dbMsgMs);
+      logger.logWarning(3, "User Message Storage Fallback", dbMsgErr.message || String(dbMsgErr));
     }
 
-    // 5. Load past conversation history from Supabase safely (Requirement 9)
+    // Load past conversation history from Supabase safely
     let payloadMessages: ChatMessagePayload[] = [];
+    const dbHistStart = Date.now();
     try {
       const pastMessages = await db.message.findMany({
         where: { conversationId },
         orderBy: { createdAt: "asc" },
         take: 30,
       });
+
+      const dbHistMs = Date.now() - dbHistStart;
+      logger.addDatabaseTime(dbHistMs);
 
       if (pastMessages.length > 0) {
         payloadMessages = pastMessages.map((msg) => ({
@@ -117,27 +141,27 @@ export async function POST(req: NextRequest) {
         }));
       }
     } catch (dbHistErr: any) {
-      console.error("[Database Warning - Conversation history fetch failed]:", dbHistErr.message || dbHistErr);
+      logger.addDatabaseTime(Date.now() - dbHistStart);
+      logger.logWarning(3, "History Fetch Fallback", dbHistErr.message || String(dbHistErr));
     }
 
-    // If no past history could be fetched from DB, use current user message
     if (payloadMessages.length === 0) {
       payloadMessages = [{ role: "user", content: content.trim() }];
     }
 
-    // 6. Resolve system prompt for Isaac AI & active agent persona
+    // 4 & 5. OpenRouter request started & response received
     const systemPrompt = getAgentSystemPrompt(agentId);
 
-    console.log(`[Chat API] Executing OpenRouter AI completion request for model: qwen/qwen-2.5-72b-instruct (Agent: ${agentId})`);
-
-    // 7. Execute OpenRouter AI Streaming Completion Request (Requirement 8 - OpenRouter execution confirmed)
     const { stream } = await streamChatCompletion({
       messages: payloadMessages,
       systemPrompt,
+      logger,
     });
 
-    // 8. Stream response chunks to client & asynchronously persist assistant response to Supabase
+    // 6, 7 & 8. Parse response, save assistant message, and send response stream
     let fullAssistantResponse = "";
+    const parseStart = Date.now();
+
     const transformStream = new TransformStream({
       transform(chunk, controller) {
         const text = new TextDecoder().decode(chunk);
@@ -145,12 +169,15 @@ export async function POST(req: NextRequest) {
         controller.enqueue(chunk);
       },
       async flush() {
-        const duration = Date.now() - startTime;
-        console.log(`[Chat API] Stream completed in ${duration}ms. Full response length: ${fullAssistantResponse.length} chars.`);
+        const parseMs = Date.now() - parseStart;
+        logger.setParsingTime(parseMs);
+        logger.setContentLength(fullAssistantResponse.length);
+        logger.logStep(5, "Parsed AI response stream", parseMs, `${fullAssistantResponse.length} total chars`);
 
         if (fullAssistantResponse.trim() && conversationId && userId) {
+          const dbSaveStart = Date.now();
           try {
-            await db.message.create({
+            const savedMsg = await db.message.create({
               data: {
                 userId,
                 conversationId,
@@ -159,11 +186,17 @@ export async function POST(req: NextRequest) {
                 agentId,
               },
             });
-            console.log(`[Database Success] Saved assistant message for conversation ${conversationId}.`);
+            const dbSaveMs = Date.now() - dbSaveStart;
+            logger.addDatabaseTime(dbSaveMs);
+            logger.logStep(6, "Assistant message saved", dbSaveMs, `Msg ID: ${savedMsg.id}`);
           } catch (dbSaveAssistantErr: any) {
-            console.error("[Database Warning - Assistant message storage failed]:", dbSaveAssistantErr.message || dbSaveAssistantErr);
+            logger.addDatabaseTime(Date.now() - dbSaveStart);
+            logger.logWarning(6, "Assistant Message Storage Fallback", dbSaveAssistantErr.message || String(dbSaveAssistantErr));
           }
         }
+
+        logger.logStep(7, "Streaming completed & sent to frontend");
+        logger.logSummary(true);
       },
     });
 
@@ -174,13 +207,17 @@ export async function POST(req: NextRequest) {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
         "X-Conversation-Id": conversationId,
+        "X-Request-Id": logger.requestId,
       },
     });
   } catch (error: any) {
-    console.error("[Chat API Critical Error]", error.stack || error.message || error);
+    logger.logError(8, "Chat Pipeline Exception", error);
+    logger.logSummary(false);
+
     return NextResponse.json(
       {
         error: error.message || "An unexpected error occurred in the AI co-founder service layer.",
+        requestId: logger.requestId,
         details: process.env.NODE_ENV !== "production" ? String(error.stack || error) : undefined,
       },
       { status: 500 }
